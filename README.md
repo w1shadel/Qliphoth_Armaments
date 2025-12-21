@@ -1,2 +1,4 @@
 # Qliphoth_Armaments
-Qliphoth Awakening Weapon Add-on
+
+I have obtained permission from the creator of this weapon add-on for Qliphoth Awakening. If there is any problem, I will delete it.
+It's not ready yet, so I can't release it to the public. I'll release it when the time is right.
