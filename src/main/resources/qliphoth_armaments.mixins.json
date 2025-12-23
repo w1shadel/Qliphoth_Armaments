@@ -1,0 +1,11 @@
+{
+  "required": true,
+  "package": "com.Maxwell.qliphoth_armaments.mixin",
+  "compatibilityLevel": "JAVA_17",
+  "mixins": [
+    "BossEventsMixin"
+  ],
+  "injectors": {
+    "defaultRequire": 1
+  }
+}

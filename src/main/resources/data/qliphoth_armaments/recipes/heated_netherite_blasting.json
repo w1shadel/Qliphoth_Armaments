@@ -1,0 +1,9 @@
+{
+  "type": "minecraft:blasting",
+  "ingredient": {
+    "item": "minecraft:netherite_ingot"
+  },
+  "result": "qliphoth_armaments:heated_netherite",
+  "experience": 2.0,
+  "cookingtime": 600
+}

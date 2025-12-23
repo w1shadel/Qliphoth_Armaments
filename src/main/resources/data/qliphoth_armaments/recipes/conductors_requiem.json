@@ -1,0 +1,23 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    " B ",
+    "ACA",
+    " A "
+  ],
+  "key": {
+    "A": {
+      "item": "qliphoth_armaments:tempered_netherite"
+    },
+    "B": {
+      "item": "qliphoth_armaments:copper_stick"
+    },
+    "C": {
+      "item": "fdbosses:lightning_core"
+    }
+  },
+  "result": {
+    "item": "qliphoth_armaments:conductors_requiem",
+    "count": 1
+  }
+}

@@ -1,0 +1,20 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "AA ",
+    "ABA",
+    "AA "
+  ],
+  "key": {
+    "A": {
+      "item": "qliphoth_armaments:tempered_netherite"
+    },
+    "B": {
+      "item": "fdbosses:fire_and_ice_core"
+    }
+  },
+  "result": {
+    "item": "qliphoth_armaments:maximum_quietus",
+    "count": 1
+  }
+}

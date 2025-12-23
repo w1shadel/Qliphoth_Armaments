@@ -72,7 +72,10 @@ repositories {
         url "https://cursemaven.com"
     }
 }
-
+mixin {
+    add sourceSets.main, "${mod_id}.refmap.json"
+    config "${mod_id}.mixins.json"
+}
 dependencies {
     minecraft "net.minecraftforge:forge:${minecraft_version}-${forge_version}"
     implementation fg.deobf("curse.maven:spark-361579:4738952")
@@ -83,6 +86,13 @@ dependencies {
     runtimeOnly fg.deobf("curse.maven:jade-324717:5672013")
     implementation fg.deobf("curse.maven:qliphoth-awakening-1271707:7234981")
     implementation fg.deobf("curse.maven:fdlib-1271749:7061856")
+    implementation fg.deobf("curse.maven:construction-wand-399558:4684054")
+    implementation fg.deobf("curse.maven:lendercataclysm-551586:6906993")
+    implementation fg.deobf("curse.maven:better-combat-by-daedelus-639842:7287334")
+    implementation fg.deobf("curse.maven:cloth-config-348521:5729105")
+    implementation fg.deobf("curse.maven:curios-309927:6418456")
+    implementation fg.deobf("curse.maven:playeranimator-658587:4587214")
+    implementation fg.deobf("curse.maven:lionfish-api-1001614:5922047")
     annotationProcessor 'org.spongepowered:mixin:0.8.5:processor'
 }
 

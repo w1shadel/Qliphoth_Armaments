@@ -1,0 +1,17 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "AAA",
+    "AAA",
+    "AAA"
+  ],
+  "key": {
+    "A": {
+      "item": "minecraft:lightning_rod"
+    }
+  },
+  "result": {
+    "item": "qliphoth_armaments:copper_stick",
+    "count": 1
+  }
+}
