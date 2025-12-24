@@ -1,12 +1,12 @@
-package com.maxwell.qliphoth_armaments.common.item;
+package com.Maxwell.qliphoth_armaments.common.item;
 
-import com.finderfeed.fdbosses.content.data_components.ItemCoreDataComponent;
-import com.finderfeed.fdbosses.init.BossDataComponents;
-import com.maxwell.qliphoth_armaments.common.entity.ChesedCoreMinionEntity;
-import com.maxwell.qliphoth_armaments.common.util.GradientTextUtil;
-import com.maxwell.qliphoth_armaments.init.ModEntities;
+import com.Maxwell.qliphoth_armaments.common.entity.ChesedCoreMinionEntity;
+import com.Maxwell.qliphoth_armaments.common.util.GradientTextUtil;
+import com.Maxwell.qliphoth_armaments.init.ModEntities;
 import com.finderfeed.fdbosses.client.BossParticles;
 import com.finderfeed.fdbosses.client.particles.arc_lightning.ArcLightningOptions;
+import com.finderfeed.fdbosses.content.data_components.ItemCoreDataComponent;
+import com.finderfeed.fdbosses.content.items.WeaponCoreItem;
 import com.finderfeed.fdbosses.init.BossSounds;
 import com.finderfeed.fdlib.FDLibCalls;
 import com.finderfeed.fdlib.systems.shake.FDShakeData;
@@ -28,6 +28,7 @@ import net.minecraft.world.item.*;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.Vec3;
 
+import javax.annotation.Nullable;
 import java.awt.*;
 import java.util.Comparator;
 import java.util.List;
@@ -38,12 +39,11 @@ public class ConductorRequiemItem extends SwordItem implements QAModWeapon {
     private static final String TAG_HAS_ORCHESTRATOR = "HasChesedOrchestrator";
 
     private boolean hasCore(ItemStack stack) {
-        ItemCoreDataComponent coreData = stack.get(BossDataComponents.ITEM_CORE.get());
-        return coreData != null && coreData.getCoreType() == ItemCoreDataComponent.CoreType.LIGHTNING;
+        return WeaponCoreItem.getItemCore(stack) == ItemCoreDataComponent.CoreType.LIGHTNING;
     }
 
     public ConductorRequiemItem(Tier tier, int attackDamage, float attackSpeed, Properties properties) {
-        super(tier, properties.attributes(SwordItem.createAttributes(tier, attackDamage, attackSpeed)));
+        super(tier, attackDamage, attackSpeed, properties);
     }
 
     @Override
@@ -107,7 +107,7 @@ public class ConductorRequiemItem extends SwordItem implements QAModWeapon {
     @Override
     public void onUseTick(Level level, LivingEntity livingEntity, ItemStack stack, int count) {
         if (livingEntity instanceof Player player) {
-            int duration = this.getUseDuration(stack, livingEntity) - count;
+            int duration = this.getUseDuration(stack) - count;
             player.addEffect(new MobEffectInstance(MobEffects.MOVEMENT_SLOWDOWN, 5, 2, false, false, false));
             if (!level.isClientSide() && duration < LONG_PRESS_THRESHOLD) {
                 if (duration % 3 == 0) {
@@ -160,7 +160,7 @@ public class ConductorRequiemItem extends SwordItem implements QAModWeapon {
     @Override
     public void releaseUsing(ItemStack stack, Level level, LivingEntity livingEntity, int timeCharged) {
         if (!(livingEntity instanceof Player player)) return;
-        int timeUsed = this.getUseDuration(stack, livingEntity) - timeCharged;
+        int timeUsed = this.getUseDuration(stack) - timeCharged;
         if (timeUsed < LONG_PRESS_THRESHOLD) {
             if (!level.isClientSide()) {
                 sendCommandToMinions(player, "FIRE_CROSS_RAY");
@@ -176,7 +176,7 @@ public class ConductorRequiemItem extends SwordItem implements QAModWeapon {
     }
 
     @Override
-    public int getUseDuration(ItemStack stack, LivingEntity entity) {
+    public int getUseDuration(ItemStack stack) {
         return 72000;
     }
 
@@ -254,8 +254,8 @@ public class ConductorRequiemItem extends SwordItem implements QAModWeapon {
     }
 
     @Override
-    public void appendHoverText(ItemStack stack, TooltipContext context, List<Component> tooltip, TooltipFlag flag) {
-        super.appendHoverText(stack, context, tooltip, flag);
+    public void appendHoverText(ItemStack stack, @Nullable Level level, List<Component> tooltip, TooltipFlag flag) {
+        super.appendHoverText(stack, level, tooltip, flag);
         if (hasCore(stack)) {
             tooltip.add(Component.translatable("item.qliphoth_armaments.conductors_requiem.fuse.lore"));
         } else {

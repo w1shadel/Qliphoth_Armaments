@@ -1,4 +1,4 @@
-package com.maxwell.qliphoth_armaments.common.item;
+package com.Maxwell.qliphoth_armaments.common.item;
 
 import net.minecraft.ChatFormatting;
 import net.minecraft.network.chat.Component;

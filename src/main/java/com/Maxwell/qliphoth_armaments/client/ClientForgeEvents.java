@@ -1,39 +1,31 @@
-package com.maxwell.qliphoth_armaments.client;
+package com.Maxwell.qliphoth_armaments.client;
 
-import com.maxwell.qliphoth_armaments.QA;
-import com.maxwell.qliphoth_armaments.api.ElementalReactionManager;
-import com.maxwell.qliphoth_armaments.api.QAElements;
-import com.maxwell.qliphoth_armaments.common.item.ConductorRequiemItem;
-import com.mojang.blaze3d.vertex.DefaultVertexFormat;
-import com.mojang.blaze3d.vertex.PoseStack;
-import com.mojang.blaze3d.vertex.VertexConsumer;
-import com.mojang.blaze3d.vertex.VertexFormat;
+import com.Maxwell.qliphoth_armaments.QA;
+import com.Maxwell.qliphoth_armaments.api.ElementalReactionManager;
+import com.Maxwell.qliphoth_armaments.api.QAElements;
+import com.Maxwell.qliphoth_armaments.common.item.ConductorRequiemItem;
+import com.mojang.blaze3d.systems.RenderSystem;
+import com.mojang.blaze3d.vertex.*;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.renderer.MultiBufferSource;
-import net.minecraft.client.renderer.RenderStateShard;
-import net.minecraft.client.renderer.RenderType;
-import net.minecraft.core.component.DataComponents;
+import net.minecraft.client.renderer.GameRenderer;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.Mth;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.component.CustomData;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
-import net.neoforged.api.distmarker.Dist;
-import net.neoforged.bus.api.SubscribeEvent;
-import net.neoforged.fml.common.EventBusSubscriber;
-import net.neoforged.neoforge.client.event.ComputeFovModifierEvent;
-import net.neoforged.neoforge.client.event.RenderLevelStageEvent;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.client.event.ComputeFovModifierEvent;
+import net.minecraftforge.client.event.RenderLevelStageEvent;
+import net.minecraftforge.eventbus.api.SubscribeEvent;
+import net.minecraftforge.fml.common.Mod;
 import org.joml.Matrix4f;
 
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
-@EventBusSubscriber(modid = QA.MOD_ID, bus = EventBusSubscriber.Bus.GAME, value = Dist.CLIENT)
+@Mod.EventBusSubscriber(modid = QA.MOD_ID, bus = Mod.EventBusSubscriber.Bus.FORGE, value = Dist.CLIENT)
 public class ClientForgeEvents {
 
     @SubscribeEvent
@@ -47,26 +39,10 @@ public class ClientForgeEvents {
                 float zoom = 1.0F - (0.2F * progress);
                 event.setNewFovModifier(event.getNewFovModifier() * zoom);
             }
-            CustomData customData = stack.get(DataComponents.CUSTOM_DATA);
-            if (customData != null && customData.contains("ChesedRecoilTimer")) {
+            if (stack.getOrCreateTag().contains("ChesedRecoilTimer")) {
                 event.setNewFovModifier(event.getNewFovModifier() * 0.7F);
             }
         }
-    }
-
-    private static final Map<ResourceLocation, RenderType> ICON_RENDER_TYPES = new HashMap<>();
-
-    private static RenderType getIconRenderType(ResourceLocation texture) {
-        return ICON_RENDER_TYPES.computeIfAbsent(texture, tex -> {
-            RenderType.CompositeState state = RenderType.CompositeState.builder()
-                    .setShaderState(RenderStateShard.POSITION_TEX_SHADER)
-                    .setTextureState(new RenderStateShard.TextureStateShard(tex, false, false))
-                    .setTransparencyState(RenderStateShard.TRANSLUCENT_TRANSPARENCY)
-                    .setDepthTestState(RenderStateShard.NO_DEPTH_TEST)
-                    .setCullState(RenderStateShard.NO_CULL)
-                    .createCompositeState(false);
-            return RenderType.create("element_icon", DefaultVertexFormat.POSITION_TEX, VertexFormat.Mode.QUADS, 256, false, true, state);
-        });
     }
 
     @SubscribeEvent
@@ -79,27 +55,25 @@ public class ClientForgeEvents {
         Level level = mc.level;
         if (player == null || level == null) return;
         PoseStack poseStack = event.getPoseStack();
-        float partialTicks = event.getPartialTick().getGameTimeDeltaPartialTick(true);
-        MultiBufferSource.BufferSource bufferSource = mc.renderBuffers().bufferSource();
+        float partialTicks = event.getPartialTick();
         AABB renderBounds = player.getBoundingBox().inflate(64.0);
-        List<LivingEntity> nearbyEntities = level.getEntitiesOfClass(LivingEntity.class, renderBounds, entity -> entity != player);
+        List<LivingEntity> nearbyEntities = level.getEntitiesOfClass(LivingEntity.class, renderBounds, (entity) -> entity != player);
         for (LivingEntity entity : nearbyEntities) {
             QAElements element = ElementalReactionManager.getCurrentState(entity);
             if (element != null) {
-                renderElementIcon(poseStack, bufferSource, entity, element, partialTicks);
+                renderElementIcon(poseStack, entity, element, partialTicks);
             }
         }
-        bufferSource.endBatch();
     }
 
-    private static void renderElementIcon(PoseStack poseStack, MultiBufferSource bufferSource, LivingEntity entity, QAElements element, float partialTicks) {
+    private static void renderElementIcon(PoseStack poseStack, LivingEntity entity, QAElements element, float partialTicks) {
         ResourceLocation iconTexture;
         if (element == QAElements.FIRE) {
-            iconTexture = ResourceLocation.fromNamespaceAndPath(QA.MOD_ID, "textures/gui/effect/fire_icon.png");
+            iconTexture = new ResourceLocation(QA.MOD_ID, "textures/gui/effect/fire_icon.png");
         } else if (element == QAElements.ICE) {
-            iconTexture = ResourceLocation.fromNamespaceAndPath(QA.MOD_ID, "textures/gui/effect/ice_icon.png");
+            iconTexture = new ResourceLocation(QA.MOD_ID, "textures/gui/effect/ice_icon.png");
         } else {
-            iconTexture = ResourceLocation.fromNamespaceAndPath(QA.MOD_ID, "textures/gui/effect/lightning_icon.png");
+            iconTexture = new ResourceLocation(QA.MOD_ID, "textures/gui/effect/lightning_icon.png");
         }
         double entityX = Mth.lerp(partialTicks, entity.xOld, entity.getX());
         double entityY = Mth.lerp(partialTicks, entity.yOld, entity.getY());
@@ -113,26 +87,39 @@ public class ClientForgeEvents {
         poseStack.translate(entityX - camPos.x, entityY - camPos.y + yOffset, entityZ - camPos.z);
         poseStack.mulPose(Minecraft.getInstance().gameRenderer.getMainCamera().rotation());
         poseStack.scale(-finalScale, -finalScale, finalScale);
-        RenderType renderType = getIconRenderType(iconTexture);
-        VertexConsumer buffer = bufferSource.getBuffer(renderType);
-        Matrix4f matrix = poseStack.last().pose();
+        Tesselator tesselator = Tesselator.getInstance();
+        BufferBuilder buffer = tesselator.getBuilder();
+        RenderSystem.setShaderTexture(0, iconTexture);
+        RenderSystem.setShader(GameRenderer::getPositionTexShader);
+        RenderSystem.enableBlend();
+        RenderSystem.defaultBlendFunc();
+        RenderSystem.disableDepthTest();
+        RenderSystem.disableCull();
         poseStack.pushPose();
-        poseStack.scale(1.2F, 1.2F, 1.2F);
+        float outlineScale = 1.2F;
+        poseStack.scale(outlineScale, outlineScale, outlineScale);
+        RenderSystem.setShaderColor(0.0F, 0.0F, 0.0F, 1.0F);
         Matrix4f outlineMatrix = poseStack.last().pose();
-        float r = 0.0f, g = 0.0f, b = 0.0f, a = 1.0f;
-        buffer.addVertex(outlineMatrix, -0.5F, 0.5F, 0).setColor(r, g, b, a).setUv(0, 1);
-        buffer.addVertex(outlineMatrix, 0.5F, 0.5F, 0).setColor(r, g, b, a).setUv(1, 1);
-        buffer.addVertex(outlineMatrix, 0.5F, -0.5F, 0).setColor(r, g, b, a).setUv(1, 0);
-        buffer.addVertex(outlineMatrix, -0.5F, -0.5F, 0).setColor(r, g, b, a).setUv(0, 0);
+        buffer.begin(VertexFormat.Mode.QUADS, DefaultVertexFormat.POSITION_TEX);
+        buffer.vertex(outlineMatrix, -0.5F, -0.5F, 0).uv(0, 0).endVertex();
+        buffer.vertex(outlineMatrix, -0.5F, 0.5F, 0).uv(0, 1).endVertex();
+        buffer.vertex(outlineMatrix, 0.5F, 0.5F, 0).uv(1, 1).endVertex();
+        buffer.vertex(outlineMatrix, 0.5F, -0.5F, 0).uv(1, 0).endVertex();
+        tesselator.end();
         poseStack.popPose();
-        r = 1.0f;
-        g = 1.0f;
-        b = 1.0f;
-        a = 1.0f;
-        buffer.addVertex(matrix, -0.5F, 0.5F, 0).setColor(r, g, b, a).setUv(0, 1);
-        buffer.addVertex(matrix, 0.5F, 0.5F, 0).setColor(r, g, b, a).setUv(1, 1);
-        buffer.addVertex(matrix, 0.5F, -0.5F, 0).setColor(r, g, b, a).setUv(1, 0);
-        buffer.addVertex(matrix, -0.5F, -0.5F, 0).setColor(r, g, b, a).setUv(0, 0);
+        RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
+        poseStack.translate(0, 0, -0.01F);
+        Matrix4f matrix = poseStack.last().pose();
+        buffer.begin(VertexFormat.Mode.QUADS, DefaultVertexFormat.POSITION_TEX);
+        buffer.vertex(matrix, -0.5F, -0.5F, 0).uv(0, 0).endVertex();
+        buffer.vertex(matrix, -0.5F, 0.5F, 0).uv(0, 1).endVertex();
+        buffer.vertex(matrix, 0.5F, 0.5F, 0).uv(1, 1).endVertex();
+        buffer.vertex(matrix, 0.5F, -0.5F, 0).uv(1, 0).endVertex();
+        tesselator.end();
+        RenderSystem.enableCull();
+        RenderSystem.enableDepthTest();
+        RenderSystem.disableBlend();
+        RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
         poseStack.popPose();
     }
 }

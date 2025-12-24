@@ -1,9 +1,8 @@
-package com.maxwell.qliphoth_armaments.common.entity;
+package com.Maxwell.qliphoth_armaments.common.entity;
 
-import com.maxwell.qliphoth_armaments.api.ElementalReactionManager;
-import com.maxwell.qliphoth_armaments.api.QAElements;
+import com.Maxwell.qliphoth_armaments.api.ElementalReactionManager;
+import com.Maxwell.qliphoth_armaments.api.QAElements;
 import net.minecraft.nbt.CompoundTag;
-import net.minecraft.network.syncher.SynchedEntityData;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
@@ -115,7 +114,7 @@ public class MalkuthPlayerAttackLogic extends Entity {
     }
 
     @Override
-    protected void defineSynchedData(SynchedEntityData.Builder builder) {
+    protected void defineSynchedData() {
     }
 
     @Override

@@ -1,29 +1,28 @@
-package com.maxwell.qliphoth_armaments.init;
+package com.Maxwell.qliphoth_armaments.init;
 
-import com.maxwell.qliphoth_armaments.common.recipe.CauldronRecipe;
-import net.minecraft.core.registries.BuiltInRegistries;
+import com.Maxwell.qliphoth_armaments.common.recipe.CauldronRecipe;
 import net.minecraft.world.item.crafting.RecipeSerializer;
 import net.minecraft.world.item.crafting.RecipeType;
-import net.neoforged.bus.api.IEventBus;
-import net.neoforged.neoforge.registries.DeferredHolder;
-import net.neoforged.neoforge.registries.DeferredRegister;
+import net.minecraftforge.eventbus.api.IEventBus;
+import net.minecraftforge.registries.DeferredRegister;
+import net.minecraftforge.registries.ForgeRegistries;
+import net.minecraftforge.registries.RegistryObject;
 
 public class ModRecipes {
-
     public static final DeferredRegister<RecipeSerializer<?>> SERIALIZERS =
-            DeferredRegister.create(BuiltInRegistries.RECIPE_SERIALIZER, "qliphoth_armaments");
+            DeferredRegister.create(ForgeRegistries.RECIPE_SERIALIZERS, "qliphoth_armaments");
 
     public static final DeferredRegister<RecipeType<?>> TYPES =
-            DeferredRegister.create(BuiltInRegistries.RECIPE_TYPE, "qliphoth_armaments");
+            DeferredRegister.create(ForgeRegistries.RECIPE_TYPES, "qliphoth_armaments");
 
-    public static final DeferredHolder<RecipeSerializer<?>, RecipeSerializer<CauldronRecipe>> CAULDRON_SERIALIZER =
-            SERIALIZERS.register("cauldron_brewing", CauldronRecipe.Serializer::new);
+    public static final RegistryObject<RecipeSerializer<CauldronRecipe>> CAULDRON_SERIALIZER =
+            SERIALIZERS.register("cauldron_cooling", CauldronRecipe.Serializer::new);
 
-    public static final DeferredHolder<RecipeType<?>, RecipeType<CauldronRecipe>> CAULDRON_TYPE =
-            TYPES.register("cauldron_brewing", () -> new RecipeType<CauldronRecipe>() {
+    public static final RegistryObject<RecipeType<CauldronRecipe>> CAULDRON_TYPE =
+            TYPES.register("cauldron_cooling", () -> new RecipeType<CauldronRecipe>() {
                 @Override
                 public String toString() {
-                    return "qliphoth_armaments:cauldron_brewing";
+                    return "qliphoth_armaments:cauldron_cooling";
                 }
             });
 

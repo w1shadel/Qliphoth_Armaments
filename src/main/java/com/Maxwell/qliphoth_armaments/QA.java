@@ -1,24 +1,26 @@
-package com.maxwell.qliphoth_armaments;
+package com.Maxwell.qliphoth_armaments;
 
-import com.maxwell.qliphoth_armaments.api.capabilities.CapabilityHandler;
-import com.maxwell.qliphoth_armaments.common.entity.ChesedCoreMinionEntity;
-import com.maxwell.qliphoth_armaments.init.ModCreativeTabs;
-import com.maxwell.qliphoth_armaments.init.ModEntities;
-import com.maxwell.qliphoth_armaments.init.ModItems;
-import com.maxwell.qliphoth_armaments.init.ModRecipes;
-import net.neoforged.bus.api.IEventBus;
-import net.neoforged.fml.common.Mod;
-import net.neoforged.neoforge.event.entity.EntityAttributeCreationEvent;
+import com.Maxwell.qliphoth_armaments.common.entity.ChesedCoreMinionEntity;
+import com.Maxwell.qliphoth_armaments.common.network.PacketHandler;
+import com.Maxwell.qliphoth_armaments.init.ModCreativeTabs;
+import com.Maxwell.qliphoth_armaments.init.ModEntities;
+import com.Maxwell.qliphoth_armaments.init.ModItems;
+import com.Maxwell.qliphoth_armaments.init.ModRecipes;
+import net.minecraftforge.event.entity.EntityAttributeCreationEvent;
+import net.minecraftforge.eventbus.api.IEventBus;
+import net.minecraftforge.fml.common.Mod;
+import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
 
 @Mod(QA.MOD_ID)
 public class QA {
 
     public static final String MOD_ID = "qliphoth_armaments";
 
-    public QA(IEventBus modEventBus) {
-        CapabilityHandler.ATTACHMENT_TYPES.register(modEventBus);
-        ModItems.register(modEventBus);
-        ModEntities.register(modEventBus);
+    public QA(FMLJavaModLoadingContext context) {
+        IEventBus modEventBus = context.getModEventBus();
+        PacketHandler.register();
+        ModItems.ITEMS.register(modEventBus);
+        ModEntities.ENTITIES.register(modEventBus);
         ModRecipes.register(modEventBus);
         ModCreativeTabs.TABS.register(modEventBus);
         modEventBus.addListener(this::addEntityAttributes);

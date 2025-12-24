@@ -1,23 +1,23 @@
-package com.maxwell.qliphoth_armaments.common.item;
+package com.Maxwell.qliphoth_armaments.common.item;
 
-import com.finderfeed.fdbosses.content.data_components.ItemCoreDataComponent;
-import com.finderfeed.fdbosses.init.BossDataComponents;
-import com.maxwell.qliphoth_armaments.api.ElementalReactionManager;
-import com.maxwell.qliphoth_armaments.api.QAElements;
-import com.maxwell.qliphoth_armaments.common.entity.MalkuthPlayerAttackLogic;
-import com.maxwell.qliphoth_armaments.common.entity.PlayerCannonProjectile;
-import com.maxwell.qliphoth_armaments.common.util.GradientTextUtil;
+import com.Maxwell.qliphoth_armaments.api.ElementalReactionManager;
+import com.Maxwell.qliphoth_armaments.api.QAElements;
+import com.Maxwell.qliphoth_armaments.common.entity.MalkuthPlayerAttackLogic;
+import com.Maxwell.qliphoth_armaments.common.entity.PlayerCannonProjectile;
+import com.Maxwell.qliphoth_armaments.common.util.GradientTextUtil;
 import com.finderfeed.fdbosses.BossUtil;
+import com.finderfeed.fdbosses.content.data_components.ItemCoreDataComponent;
 import com.finderfeed.fdbosses.content.entities.malkuth_boss.MalkuthAttackType;
 import com.finderfeed.fdbosses.content.entities.malkuth_boss.MalkuthEntity;
 import com.finderfeed.fdbosses.content.entities.malkuth_boss.malkuth_earthquake.MalkuthEarthquake;
+import com.finderfeed.fdbosses.content.items.WeaponCoreItem;
 import com.finderfeed.fdbosses.init.BossSounds;
 import com.finderfeed.fdlib.systems.shake.FDShakeData;
 import com.finderfeed.fdlib.systems.shake.PositionedScreenShakePacket;
 import com.finderfeed.fdlib.util.client.particles.ball_particle.BallParticleOptions;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.gui.screens.Screen;
-import net.minecraft.core.component.DataComponents;
+import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.sounds.SoundEvent;
@@ -29,11 +29,11 @@ import net.minecraft.world.effect.MobEffects;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.*;
-import net.minecraft.world.item.component.CustomData;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.Vec3;
 import org.joml.Vector3f;
 
+import javax.annotation.Nullable;
 import java.awt.*;
 import java.util.List;
 
@@ -57,12 +57,11 @@ public class MaximumQuietusItem extends SwordItem implements QAModWeapon {
     }
 
     public MaximumQuietusItem(Tier tier, int damage, float speed, Properties properties) {
-        super(tier, properties.attributes(SwordItem.createAttributes(tier, damage, speed)));
+        super(tier, damage, speed, properties);
     }
 
     private boolean hasCore(ItemStack stack) {
-        ItemCoreDataComponent coreData = stack.get(BossDataComponents.ITEM_CORE.get());
-        return coreData != null && coreData.getCoreType() == ItemCoreDataComponent.CoreType.FIRE_AND_ICE;
+        return WeaponCoreItem.getItemCore(stack) == ItemCoreDataComponent.CoreType.FIRE_AND_ICE;
     }
 
     @Override
@@ -118,7 +117,7 @@ public class MaximumQuietusItem extends SwordItem implements QAModWeapon {
     public void onUseTick(Level level, LivingEntity livingEntity, ItemStack stack, int count) {
         if (!(livingEntity instanceof Player player)) return;
         boolean isAwakened = hasCore(stack);
-        int usedTicks = this.getUseDuration(stack, livingEntity) - count;
+        int usedTicks = this.getUseDuration(stack) - count;
         if (isAwakened) {
             return;
         }
@@ -137,7 +136,7 @@ public class MaximumQuietusItem extends SwordItem implements QAModWeapon {
     @Override
     public void releaseUsing(ItemStack stack, Level level, LivingEntity entity, int timeLeft) {
         if (!(entity instanceof Player player)) return;
-        int usedTicks = this.getUseDuration(stack, entity) - timeLeft;
+        int usedTicks = this.getUseDuration(stack) - timeLeft;
         boolean isAwakened = hasCore(stack);
         if (!level.isClientSide) {
             QAElements elementType = getElementFromStack(stack);
@@ -204,45 +203,29 @@ public class MaximumQuietusItem extends SwordItem implements QAModWeapon {
     }
 
     @Override
-    public int getUseDuration(ItemStack stack, LivingEntity entity) {
+    public int getUseDuration(ItemStack stack) {
         return 72000;
     }
 
-
     private void toggleMode(ItemStack stack, Player player) {
-
-        CustomData currentData = stack.getOrDefault(DataComponents.CUSTOM_DATA, CustomData.EMPTY);
-
-        int currentMode = currentData.getUnsafe().getInt(TAG_MODE);
+        CompoundTag tag = stack.getOrCreateTag();
+        int currentMode = tag.getInt(TAG_MODE);
         int newMode = (currentMode == 0) ? 1 : 0;
-
-
-        CustomData newData = currentData.update(tag -> tag.putInt(TAG_MODE, newMode));
-
-        stack.set(DataComponents.CUSTOM_DATA, newData);
-
+        tag.putInt(TAG_MODE, newMode);
         Component modeName = (newMode == 0)
                 ? Component.literal("Fire").withStyle(ChatFormatting.GOLD)
                 : Component.literal("Ice").withStyle(ChatFormatting.AQUA);
         player.displayClientMessage(Component.translatable("Mode Switched: %s", modeName), true);
     }
 
-
     private QAElements getElementFromStack(ItemStack stack) {
-
-        CustomData customData = stack.get(DataComponents.CUSTOM_DATA);
-
-        if (customData != null && customData.contains(TAG_MODE)) {
-            int mode = customData.getUnsafe().getInt(TAG_MODE);
-            return (mode == 0) ? QAElements.FIRE : QAElements.ICE;
-        }
-
-        return QAElements.FIRE;
+        int mode = stack.getOrCreateTag().getInt(TAG_MODE);
+        return (mode == 0) ? QAElements.FIRE : QAElements.ICE;
     }
 
     @Override
-    public void appendHoverText(ItemStack stack, TooltipContext context, List<Component> tooltip, TooltipFlag flag) {
-        super.appendHoverText(stack, context, tooltip, flag);
+    public void appendHoverText(ItemStack stack, @Nullable Level level, List<Component> tooltip, TooltipFlag flag) {
+        super.appendHoverText(stack, level, tooltip, flag);
         if (hasCore(stack)) {
             tooltip.add(Component.translatable("item.qliphoth_armaments.maximum_quietus.fuse.lore"));
         } else {
@@ -275,4 +258,5 @@ public class MaximumQuietusItem extends SwordItem implements QAModWeapon {
             addPressShiftHint(tooltip);
         }
     }
+
 }

@@ -1,4 +1,4 @@
-package com.maxwell.qliphoth_armaments.api;
+package com.Maxwell.qliphoth_armaments.api;
 
 public enum QAElements {
     FIRE,

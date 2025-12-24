@@ -1,12 +1,13 @@
-package com.maxwell.qliphoth_armaments.api;
+package com.Maxwell.qliphoth_armaments.api;
 
-import com.maxwell.qliphoth_armaments.api.capabilities.CapabilityHandler;
-import com.maxwell.qliphoth_armaments.api.capabilities.IElementalState;
+import com.Maxwell.qliphoth_armaments.api.capabilities.CapabilityHandler;
+import com.Maxwell.qliphoth_armaments.api.capabilities.IElementalState;
+import com.Maxwell.qliphoth_armaments.common.network.PacketHandler;
+import com.Maxwell.qliphoth_armaments.common.network.PacketSyncElementalState;
 import com.finderfeed.fdbosses.content.entities.malkuth_boss.MalkuthAttackType;
 import com.finderfeed.fdbosses.content.entities.malkuth_boss.MalkuthEntity;
 import com.finderfeed.fdbosses.init.BossEffects;
 import com.finderfeed.fdbosses.init.BossEntities;
-import com.maxwell.qliphoth_armaments.common.network.PacketSyncElementalState;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.sounds.SoundEvents;
@@ -18,7 +19,8 @@ import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.level.Level;
-import net.neoforged.neoforge.network.PacketDistributor;
+import net.minecraftforge.common.util.LazyOptional;
+import net.minecraftforge.network.PacketDistributor;
 import org.joml.Vector3f;
 
 public class ElementalReactionManager {
@@ -69,44 +71,52 @@ public class ElementalReactionManager {
         if (entity == null) {
             return null;
         }
-        IElementalState state = entity.getData(CapabilityHandler.ELEMENTAL_STATE.get());
-        return state.getElement(entity.level().getGameTime());
+        Level level = entity.level();
+        if (level == null) {
+            return null;
+        }
+        LazyOptional<IElementalState> capabilityOptional = entity.getCapability(CapabilityHandler.ELEMENTAL_STATE_CAPABILITY);
+        if (capabilityOptional.isPresent()) {
+            IElementalState state = capabilityOptional.orElseThrow(IllegalStateException::new);
+            return state.getElement(level.getGameTime());
+        }
+        return null;
     }
 
     public static void applyState(LivingEntity entity, QAElements type, int duration) {
-
-        IElementalState state = entity.getData(CapabilityHandler.ELEMENTAL_STATE.get());
-        state.setElement(type, duration, entity.level().getGameTime());
-        if (type == QAElements.FIRE) {
-            entity.setRemainingFireTicks(20);
-        }
-        if (type == QAElements.ICE) {
-            entity.addEffect(new MobEffectInstance(MobEffects.MOVEMENT_SLOWDOWN, duration, 1));
-        }
-        if (type == QAElements.LIGHTNING) {
-            entity.addEffect(new MobEffectInstance(MobEffects.MOVEMENT_SLOWDOWN, 20, 0));
-        }
-
-
+        entity.getCapability(CapabilityHandler.ELEMENTAL_STATE_CAPABILITY).ifPresent(state -> {
+            state.setElement(type, duration, entity.level().getGameTime());
+            if (type == QAElements.FIRE) {
+                entity.setSecondsOnFire(duration / 20);
+            }
+            if (type == QAElements.ICE) {
+                entity.addEffect(new MobEffectInstance(MobEffects.MOVEMENT_SLOWDOWN, duration, 1));
+            }
+            if (type == QAElements.LIGHTNING) {
+                entity.addEffect(new MobEffectInstance(MobEffects.MOVEMENT_SLOWDOWN, 20, 0));
+            }
+        });
         if (!entity.level().isClientSide()) {
-            PacketSyncElementalState packet = new PacketSyncElementalState(entity.getId(), type, duration);
-
-            PacketDistributor.sendToPlayersTrackingEntity(entity, packet);
+            PacketHandler.INSTANCE.send(
+                    PacketDistributor.TRACKING_ENTITY_AND_SELF.with(() -> entity),
+                    new PacketSyncElementalState(entity.getId(), type, duration)
+            );
         }
     }
 
     public static void clearState(LivingEntity entity) {
-
-        IElementalState state = entity.getData(CapabilityHandler.ELEMENTAL_STATE.get());
-        state.clearElement();
-        entity.clearFire();
-        entity.removeEffect(MobEffects.MOVEMENT_SLOWDOWN);
+        entity.getCapability(CapabilityHandler.ELEMENTAL_STATE_CAPABILITY).ifPresent(state -> {
+            state.clearElement();
+            entity.clearFire();
+            entity.removeEffect(MobEffects.MOVEMENT_SLOWDOWN);
+        });
         if (!entity.level().isClientSide()) {
-            PacketSyncElementalState packet = new PacketSyncElementalState(entity.getId(), null, 0);
-            PacketDistributor.sendToPlayersTrackingEntity(entity, packet);
+            PacketHandler.INSTANCE.send(
+                    PacketDistributor.TRACKING_ENTITY_AND_SELF.with(() -> entity),
+                    new PacketSyncElementalState(entity.getId(), null, 0)
+            );
         }
     }
-
 
     public static void triggerMeltdownEffect(LivingEntity target) {
         ServerLevel level = (ServerLevel) target.level();
@@ -141,7 +151,7 @@ public class ElementalReactionManager {
                 double dx = entity.getX() - target.getX();
                 double dz = entity.getZ() - target.getZ();
                 entity.knockback(1.5F, dx, dz);
-                entity.addEffect(new MobEffectInstance(BossEffects.SHOCKED, 60, 0));
+                entity.addEffect(new MobEffectInstance(BossEffects.SHOCKED.get(), 60, 0));
             }
         });
     }
@@ -154,7 +164,7 @@ public class ElementalReactionManager {
                 target.getX(), target.getY() + target.getBbHeight() / 2, target.getZ(),
                 30, 0.5, 0.5, 0.5, 0.2);
         spawnVisualEntity(BossEntities.CHESED_ELECTRIC_SPHERE.get(), level, target.position().add(0, target.getBbHeight() / 2, 0));
-        target.addEffect(new MobEffectInstance(BossEffects.SHOCKED, 120, 1));
+        target.addEffect(new MobEffectInstance(BossEffects.SHOCKED.get(), 120, 1));
         target.addEffect(new MobEffectInstance(MobEffects.WEAKNESS, 120, 1));
     }
 

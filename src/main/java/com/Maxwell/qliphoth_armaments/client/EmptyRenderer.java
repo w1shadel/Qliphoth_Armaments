@@ -1,4 +1,4 @@
-package com.maxwell.qliphoth_armaments.client;
+package com.Maxwell.qliphoth_armaments.client;
 
 import net.minecraft.client.renderer.culling.Frustum;
 import net.minecraft.client.renderer.entity.EntityRenderer;
