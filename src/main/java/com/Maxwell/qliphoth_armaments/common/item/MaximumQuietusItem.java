@@ -27,6 +27,7 @@ import net.minecraft.world.InteractionResultHolder;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.effect.MobEffects;
 import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.*;
 import net.minecraft.world.level.Level;
@@ -41,6 +42,10 @@ public class MaximumQuietusItem extends SwordItem implements QAModWeapon {
 
     private static final String TAG_MODE = "AttackMode";
     private static final int CHARGE_LV2 = 20;
+    private static final float AWAKENED_MELEE_PROC_MULTIPLIER = 3.5F;
+    private static final float CHARGED_SHOT_MULTIPLIER = 3.5F;
+    private static final float NORMAL_SHOT_MULTIPLIER = 1.8F;
+    private static final float ULTIMATE_SHOT_MULTIPLIER = 6.0F;
 
     @Override
     public boolean isDamaged(ItemStack stack) {
@@ -64,6 +69,12 @@ public class MaximumQuietusItem extends SwordItem implements QAModWeapon {
         return WeaponCoreItem.getItemCore(stack) == ItemCoreDataComponent.CoreType.FIRE_AND_ICE;
     }
 
+    private float getScaledDamage(Player owner, float multiplier) {
+        double playerAttack = owner.getAttributeValue(Attributes.ATTACK_DAMAGE);
+        float finalDamage = (float) (playerAttack * multiplier);
+        return Math.max(1.0f, finalDamage);
+    }
+
     @Override
     public boolean hurtEnemy(ItemStack stack, LivingEntity target, LivingEntity attacker) {
         if (!target.level().isClientSide() && attacker instanceof Player player) {
@@ -78,7 +89,8 @@ public class MaximumQuietusItem extends SwordItem implements QAModWeapon {
                     Vec3 startPos = player.position().add(dir.scale(1.5));
                     Vec3 dirAndLen = dir.scale(15.0);
                     MalkuthEarthquake.summon(level, visualType, startPos, dirAndLen, 20, (float) Math.PI / 3.0F, 0.0F);
-                    MalkuthPlayerAttackLogic.summon(level, player, startPos, dir, currentElement, 30.0F, false);
+                    MalkuthPlayerAttackLogic.summon(level, player, startPos, dir, currentElement,
+                            getScaledDamage(player, AWAKENED_MELEE_PROC_MULTIPLIER), false);
                     PositionedScreenShakePacket.send(level,
                             FDShakeData.builder().amplitude(2.0F).outTime(10).build(),
                             target.position(), 24.0D);
@@ -141,15 +153,18 @@ public class MaximumQuietusItem extends SwordItem implements QAModWeapon {
         if (!level.isClientSide) {
             QAElements elementType = getElementFromStack(stack);
             if (isAwakened) {
-                shootUltimate((ServerLevel) level, player, elementType);
+                shootUltimate((ServerLevel) level, player, elementType,
+                        getScaledDamage(player, ULTIMATE_SHOT_MULTIPLIER));
                 player.getCooldowns().addCooldown(this, 40);
 
             } else {
                 if (usedTicks >= CHARGE_LV2) {
-                    shootProjectile((ServerLevel) level, player, elementType, 2.0F, 30.0F, false);
+                    shootProjectile((ServerLevel) level, player, elementType, 2.0F,
+                            getScaledDamage(player, CHARGED_SHOT_MULTIPLIER), false);
                     player.getCooldowns().addCooldown(this, 30);
                 } else {
-                    shootProjectile((ServerLevel) level, player, elementType, 1.0F, 15.0F, false);
+                    shootProjectile((ServerLevel) level, player, elementType, 1.0F,
+                            getScaledDamage(player, NORMAL_SHOT_MULTIPLIER), false);
                     player.getCooldowns().addCooldown(this, 15);
                 }
             }
@@ -171,14 +186,14 @@ public class MaximumQuietusItem extends SwordItem implements QAModWeapon {
         if (!isAwakened) player.push(-look.x * 0.5, 0.1, -look.z * 0.5);
     }
 
-    private void shootUltimate(ServerLevel level, Player player, QAElements type) {
+    private void shootUltimate(ServerLevel level, Player player, QAElements type, float damage) {
         Vec3 look = player.getLookAngle();
         Vec3 spawnPos = player.getEyePosition().add(look.scale(1.5));
         Vec3 velocity = look.scale(4.5);
         MalkuthAttackType visualType = (type == QAElements.FIRE) ? MalkuthAttackType.FIRE : MalkuthAttackType.ICE;
         BossUtil.malkuthCannonShoot(level, visualType, spawnPos, look, 150.0);
         spawnPlayerChargeParticles(level, player, visualType);
-        PlayerCannonProjectile.summonForPlayer(level, player, spawnPos, velocity, type, 50.0F, true);
+        PlayerCannonProjectile.summonForPlayer(level, player, spawnPos, velocity, type, damage, true);
         level.playSound(null, player.getX(), player.getY(), player.getZ(),
                 (SoundEvent) BossSounds.MALKUTH_VOLCANO_ERRUPTION.get(), SoundSource.PLAYERS, 2.0F, 1.0F);
         PositionedScreenShakePacket.send(level,

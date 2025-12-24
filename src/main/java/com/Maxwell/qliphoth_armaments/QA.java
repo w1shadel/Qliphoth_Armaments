@@ -1,5 +1,6 @@
 package com.Maxwell.qliphoth_armaments;
 
+import com.Maxwell.qliphoth_armaments.common.config.QAConfig;
 import com.Maxwell.qliphoth_armaments.common.entity.ChesedCoreMinionEntity;
 import com.Maxwell.qliphoth_armaments.common.network.PacketHandler;
 import com.Maxwell.qliphoth_armaments.init.ModCreativeTabs;
@@ -8,7 +9,9 @@ import com.Maxwell.qliphoth_armaments.init.ModItems;
 import com.Maxwell.qliphoth_armaments.init.ModRecipes;
 import net.minecraftforge.event.entity.EntityAttributeCreationEvent;
 import net.minecraftforge.eventbus.api.IEventBus;
+import net.minecraftforge.fml.ModLoadingContext;
 import net.minecraftforge.fml.common.Mod;
+import net.minecraftforge.fml.config.ModConfig;
 import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
 
 @Mod(QA.MOD_ID)
@@ -24,6 +27,7 @@ public class QA {
         ModRecipes.register(modEventBus);
         ModCreativeTabs.TABS.register(modEventBus);
         modEventBus.addListener(this::addEntityAttributes);
+        ModLoadingContext.get().registerConfig(ModConfig.Type.COMMON, QAConfig.COMMON_SPEC);
     }
 
     private void addEntityAttributes(EntityAttributeCreationEvent event) {

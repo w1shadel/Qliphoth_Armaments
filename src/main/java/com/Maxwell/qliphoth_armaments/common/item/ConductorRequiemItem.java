@@ -1,5 +1,6 @@
 package com.Maxwell.qliphoth_armaments.common.item;
 
+import com.Maxwell.qliphoth_armaments.common.config.QAConfig;
 import com.Maxwell.qliphoth_armaments.common.entity.ChesedCoreMinionEntity;
 import com.Maxwell.qliphoth_armaments.common.util.GradientTextUtil;
 import com.Maxwell.qliphoth_armaments.init.ModEntities;
@@ -71,7 +72,18 @@ public class ConductorRequiemItem extends SwordItem implements QAModWeapon {
         }
         player.getPersistentData().putBoolean(TAG_HAS_ORCHESTRATOR, true);
         boolean isHolding = player.getMainHandItem() == stack || player.getOffhandItem() == stack;
-        int desiredCount = isHolding ? 4 : 1;
+        boolean hotbarOnly = QAConfig.COMMON.conductorRequiemHotbarOnly.get();
+        boolean isInHotbarOrOffhand = (slotId >= 0 && slotId <= 8) || slotId == 40;
+        int desiredCount;
+        if (isHolding) {
+            desiredCount = 4;
+        } else {
+            if (hotbarOnly) {
+                desiredCount = isInHotbarOrOffhand ? 1 : 0;
+            } else {
+                desiredCount = 1;
+            }
+        }
         boolean isAwakened = hasCore(stack);
         manageMinions(player, (ServerLevel) level, desiredCount, isAwakened);
         if (player.getMainHandItem() == stack) {
