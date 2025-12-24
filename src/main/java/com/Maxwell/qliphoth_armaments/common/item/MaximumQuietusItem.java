@@ -28,10 +28,7 @@ import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.effect.MobEffects;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.SwordItem;
-import net.minecraft.world.item.Tier;
-import net.minecraft.world.item.TooltipFlag;
+import net.minecraft.world.item.*;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.Vec3;
 import org.joml.Vector3f;
@@ -71,24 +68,16 @@ public class MaximumQuietusItem extends SwordItem implements QAModWeapon {
     public boolean hurtEnemy(ItemStack stack, LivingEntity target, LivingEntity attacker) {
         if (!target.level().isClientSide() && attacker instanceof Player player) {
             QAElements currentElement = getElementFromStack(stack);
-            // 状態異常の付与 (ここは変更なし)
             ElementalReactionManager.applyState(target, currentElement, 100);
             if (hasCore(stack)) {
                 if (!player.getCooldowns().isOnCooldown(this)) {
                     ServerLevel level = (ServerLevel) target.level();
-                    // 視覚エフェクトの種類決定
                     MalkuthAttackType visualType = (currentElement == QAElements.FIRE) ? MalkuthAttackType.FIRE : MalkuthAttackType.ICE;
-                    // 向きの計算
                     Vec3 dir = player.getLookAngle().multiply(1, 0, 1).normalize();
                     if (dir.lengthSqr() < 0.01) dir = player.getForward().multiply(1, 0, 1).normalize();
-                    // ★★★ 修正ポイント: 発生地点をプレイヤーの少し前にずらす ★★★
-                    // dir.scale(1.5) することで、プレイヤーの約1.5ブロック前から攻撃が発生するようにします
-                    // これにより、プレイヤー自身が巻き込まれるのを防ぎます
                     Vec3 startPos = player.position().add(dir.scale(1.5));
                     Vec3 dirAndLen = dir.scale(15.0);
-                    // ずらした startPos を使用して召喚
                     MalkuthEarthquake.summon(level, visualType, startPos, dirAndLen, 20, (float) Math.PI / 3.0F, 0.0F);
-                    // 攻撃ロジックも見た目に合わせて同じ場所から発生させる
                     MalkuthPlayerAttackLogic.summon(level, player, startPos, dir, currentElement, 30.0F, false);
                     PositionedScreenShakePacket.send(level,
                             FDShakeData.builder().amplitude(2.0F).outTime(10).build(),
@@ -98,6 +87,11 @@ public class MaximumQuietusItem extends SwordItem implements QAModWeapon {
             }
         }
         return super.hurtEnemy(stack, target, attacker);
+    }
+
+    @Override
+    public UseAnim getUseAnimation(ItemStack stack) {
+        return UseAnim.BOW;
     }
 
     @Override

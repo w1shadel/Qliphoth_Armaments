@@ -7,6 +7,8 @@ import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.level.Level;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.fml.DistExecutor;
 import net.minecraftforge.network.NetworkEvent;
 
 import java.util.function.Supplier;
@@ -41,6 +43,13 @@ public class PacketSyncElementalState {
 
     public static void handle(PacketSyncElementalState msg, Supplier<NetworkEvent.Context> ctx) {
         ctx.get().enqueueWork(() -> {
+            DistExecutor.unsafeRunWhenOn(Dist.CLIENT, () -> () -> ClientHandler.handlePacket(msg));
+        });
+        ctx.get().setPacketHandled(true);
+    }
+
+    private static class ClientHandler {
+        public static void handlePacket(PacketSyncElementalState msg) {
             Level level = Minecraft.getInstance().level;
             if (level != null) {
                 Entity entity = level.getEntity(msg.entityId);
@@ -55,7 +64,6 @@ public class PacketSyncElementalState {
                     });
                 }
             }
-        });
-        ctx.get().setPacketHandled(true);
+        }
     }
 }

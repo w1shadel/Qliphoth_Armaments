@@ -36,16 +36,12 @@ public class CommonEvents {
 
     @SubscribeEvent
     public static void onLivingChangeTarget(LivingChangeTargetEvent event) {
-        // 新しくターゲットになろうとしているエンティティを取得
         LivingEntity newTarget = event.getNewTarget();
-        // それが従者（ChesedCoreMinionEntity）であるかチェック
         if (newTarget instanceof ChesedCoreMinionEntity minion) {
             Player owner = minion.getOwner();
-            // オーナーが存在し、ターゲット可能な状態（サバイバル等）であればターゲットをオーナーに移す
             if (owner != null && !owner.isSpectator() && !owner.isCreative()) {
                 event.setNewTarget(owner);
             } else {
-                // オーナーがいない、または無敵の場合は、ミニオンをターゲットから外す（ターゲットなしにする）
                 event.setNewTarget(null);
             }
         }

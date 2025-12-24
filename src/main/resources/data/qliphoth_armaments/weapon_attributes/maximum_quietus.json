@@ -1,7 +1,7 @@
 {
   "parent": "bettercombat:double_axe",
   "attributes": {
-    "pose": "bettercombat:pose_two_handed_heavy",
+    "pose": "bettercombat:pose_two_handed_crossbow",
     "category": "heavy_axe",
     "two_handed": true
   }
