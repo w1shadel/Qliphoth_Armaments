@@ -1,5 +1,6 @@
 {
   "jei.qliphoth_armaments.category.cauldron_brewing": "焼き入れ",
+  "item.qliphoth_armaments.heated_netherite.desc": "<大釜に右クリックで焼き入れをしてください>",
   "item.qliphoth_armaments.conductors_requiem": "雷鳴の指揮者の絶唱",
   "item.qliphoth_armaments.maximum_quietus": "炎氷の支配者",
   "item.qliphoth_armaments.conductors_requiem.lore": "悠久の時を待ち続けた雷の指揮者",

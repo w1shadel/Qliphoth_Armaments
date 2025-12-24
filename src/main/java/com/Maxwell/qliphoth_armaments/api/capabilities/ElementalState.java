@@ -1,7 +1,10 @@
-package com.Maxwell.qliphoth_armaments.api.capabilities;
+package com.maxwell.qliphoth_armaments.api.capabilities;
 
-import com.Maxwell.qliphoth_armaments.api.QAElements;
+import com.maxwell.qliphoth_armaments.api.QAElements;
+import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
+import net.neoforged.neoforge.attachment.IAttachmentHolder;
+import net.neoforged.neoforge.attachment.IAttachmentSerializer;
 
 import javax.annotation.Nullable;
 
@@ -19,6 +22,9 @@ public class ElementalState implements IElementalState {
         if (this.currentElement != null && currentTime <= this.expireTick) {
             return this.currentElement;
         }
+        if (this.currentElement != null) {
+            clearElement();
+        }
         return null;
     }
 
@@ -35,7 +41,7 @@ public class ElementalState implements IElementalState {
     }
 
     @Override
-    public CompoundTag serializeNBT() {
+    public CompoundTag serializeNBT(HolderLookup.Provider provider) {
         CompoundTag tag = new CompoundTag();
         if (this.currentElement != null) {
             tag.putString(TAG_ELEMENT, this.currentElement.name());
@@ -45,12 +51,31 @@ public class ElementalState implements IElementalState {
     }
 
     @Override
-    public void deserializeNBT(CompoundTag nbt) {
+    public void deserializeNBT(HolderLookup.Provider provider, CompoundTag nbt) {
         if (nbt.contains(TAG_ELEMENT)) {
-            this.currentElement = QAElements.valueOf(nbt.getString(TAG_ELEMENT));
-            this.expireTick = nbt.getLong(TAG_EXPIRE_TICK);
+            try {
+                this.currentElement = QAElements.valueOf(nbt.getString(TAG_ELEMENT));
+                this.expireTick = nbt.getLong(TAG_EXPIRE_TICK);
+            } catch (IllegalArgumentException e) {
+                clearElement();
+            }
         } else {
             clearElement();
+        }
+    }
+
+    public static class Serializer implements IAttachmentSerializer<CompoundTag, IElementalState> {
+
+        @Override
+        public CompoundTag write(IElementalState state, HolderLookup.Provider provider) {
+            return state.serializeNBT(provider);
+        }
+
+        @Override
+        public IElementalState read(IAttachmentHolder holder, CompoundTag tag, HolderLookup.Provider provider) {
+            ElementalState state = new ElementalState();
+            state.deserializeNBT(provider, tag);
+            return state;
         }
     }
 }

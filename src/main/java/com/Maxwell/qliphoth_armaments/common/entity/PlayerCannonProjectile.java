@@ -1,7 +1,7 @@
-package com.Maxwell.qliphoth_armaments.common.entity;
+package com.maxwell.qliphoth_armaments.common.entity;
 
-import com.Maxwell.qliphoth_armaments.api.ElementalReactionManager;
-import com.Maxwell.qliphoth_armaments.api.QAElements;
+import com.maxwell.qliphoth_armaments.api.ElementalReactionManager;
+import com.maxwell.qliphoth_armaments.api.QAElements;
 import com.finderfeed.fdbosses.BossUtil;
 import com.finderfeed.fdbosses.content.entities.malkuth_boss.MalkuthAttackType;
 import com.finderfeed.fdbosses.content.entities.malkuth_boss.MalkuthDamageSource;

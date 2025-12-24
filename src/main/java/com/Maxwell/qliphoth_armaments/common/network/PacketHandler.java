@@ -1,26 +1,22 @@
-package com.Maxwell.qliphoth_armaments.common.network;
+package com.maxwell.qliphoth_armaments.common.network;
 
-import com.Maxwell.qliphoth_armaments.QA;
-import net.minecraft.resources.ResourceLocation;
-import net.minecraftforge.network.NetworkDirection;
-import net.minecraftforge.network.NetworkRegistry;
-import net.minecraftforge.network.simple.SimpleChannel;
+import com.maxwell.qliphoth_armaments.QA;
+import net.neoforged.bus.api.SubscribeEvent;
+import net.neoforged.fml.common.EventBusSubscriber;
+import net.neoforged.neoforge.network.event.RegisterPayloadHandlersEvent;
+import net.neoforged.neoforge.network.registration.PayloadRegistrar;
 
+@EventBusSubscriber(modid = QA.MOD_ID, bus = EventBusSubscriber.Bus.MOD)
 public class PacketHandler {
-    private static final String PROTOCOL_VERSION = "1";
-    public static final SimpleChannel INSTANCE = NetworkRegistry.newSimpleChannel(
-            new ResourceLocation(QA.MOD_ID, "main"),
-            () -> PROTOCOL_VERSION,
-            PROTOCOL_VERSION::equals,
-            PROTOCOL_VERSION::equals
-    );
 
-    public static void register() {
-        int id = 0;
-        INSTANCE.messageBuilder(PacketSyncElementalState.class, id++, NetworkDirection.PLAY_TO_CLIENT)
-                .encoder(PacketSyncElementalState::encode)
-                .decoder(PacketSyncElementalState::decode)
-                .consumerMainThread(PacketSyncElementalState::handle)
-                .add();
+    @SubscribeEvent
+    public static void register(final RegisterPayloadHandlersEvent event) {
+        final PayloadRegistrar registrar = event.registrar(QA.MOD_ID)
+                .versioned("1");
+        registrar.playToClient(
+                PacketSyncElementalState.TYPE,
+                PacketSyncElementalState.STREAM_CODEC,
+                PacketSyncElementalState::handle
+        );
     }
 }

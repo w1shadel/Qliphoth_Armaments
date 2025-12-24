@@ -1,63 +1,61 @@
-package com.Maxwell.qliphoth_armaments.common.recipe;
+package com.maxwell.qliphoth_armaments.common.recipe;
 
-import com.Maxwell.qliphoth_armaments.init.ModRecipes;
-import com.google.gson.JsonObject;
+import com.maxwell.qliphoth_armaments.init.ModRecipes;
+import com.mojang.serialization.MapCodec;
+import com.mojang.serialization.codecs.RecordCodecBuilder;
+import net.minecraft.core.HolderLookup;
 import net.minecraft.core.RegistryAccess;
-import net.minecraft.network.FriendlyByteBuf;
-import net.minecraft.resources.ResourceLocation;
-import net.minecraft.util.GsonHelper;
+import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.world.Container;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.crafting.Ingredient;
-import net.minecraft.world.item.crafting.Recipe;
-import net.minecraft.world.item.crafting.RecipeSerializer;
-import net.minecraft.world.item.crafting.RecipeType;
+import net.minecraft.world.item.crafting.*;
 import net.minecraft.world.level.Level;
-import net.minecraftforge.registries.ForgeRegistries;
-import org.jetbrains.annotations.Nullable;
 
-public class CauldronRecipe implements Recipe<Container> {
-    private final ResourceLocation id;
+public class CauldronRecipe implements Recipe<SingleRecipeInput> {
+
     private final Ingredient input;
     private final ItemStack output;
 
-    public Ingredient getInput() {
-        return this.input;
-    }
+    public static final MapCodec<CauldronRecipe> CODEC = RecordCodecBuilder.mapCodec(inst -> inst.group(
+            Ingredient.CODEC_NONEMPTY.fieldOf("ingredient").forGetter(CauldronRecipe::getInput),
+            ItemStack.CODEC.fieldOf("result").forGetter(r -> r.output)
+    ).apply(inst, CauldronRecipe::new));
 
-    public CauldronRecipe(ResourceLocation id, Ingredient input, ItemStack output) {
-        this.id = id;
+    public static final StreamCodec<RegistryFriendlyByteBuf, CauldronRecipe> STREAM_CODEC = StreamCodec.composite(
+            Ingredient.CONTENTS_STREAM_CODEC, CauldronRecipe::getInput,
+            ItemStack.STREAM_CODEC, r -> r.output,
+            CauldronRecipe::new
+    );
+
+    public CauldronRecipe(Ingredient input, ItemStack output) {
         this.input = input;
         this.output = output;
     }
 
-    public boolean matches(ItemStack stack) {
-        return this.input.test(stack);
+    public Ingredient getInput() {
+        return input;
     }
 
     @Override
-    public boolean matches(Container container, Level level) {
-        return false;
+    public ItemStack getResultItem(HolderLookup.Provider registries) {
+        return output.copy();
     }
 
     @Override
-    public ItemStack assemble(Container container, RegistryAccess access) {
+    public boolean matches(SingleRecipeInput input, Level level) {
+
+        return this.input.test(input.getItem(0));
+    }
+
+    @Override
+    public ItemStack assemble(SingleRecipeInput input, HolderLookup.Provider registries) {
         return output.copy();
     }
 
     @Override
     public boolean canCraftInDimensions(int width, int height) {
         return true;
-    }
-
-    @Override
-    public ItemStack getResultItem(RegistryAccess access) {
-        return output;
-    }
-
-    @Override
-    public ResourceLocation getId() {
-        return id;
     }
 
     @Override
@@ -69,27 +67,15 @@ public class CauldronRecipe implements Recipe<Container> {
     public RecipeType<?> getType() {
         return ModRecipes.CAULDRON_TYPE.get();
     }
-
     public static class Serializer implements RecipeSerializer<CauldronRecipe> {
         @Override
-        public CauldronRecipe fromJson(ResourceLocation recipeId, JsonObject json) {
-            Ingredient input = Ingredient.fromJson(json.get("ingredient"));
-            ResourceLocation itemId = new ResourceLocation(GsonHelper.getAsString(json, "result"));
-            ItemStack output = new ItemStack(ForgeRegistries.ITEMS.getValue(itemId));
-            return new CauldronRecipe(recipeId, input, output);
+        public MapCodec<CauldronRecipe> codec() {
+            return CODEC;
         }
 
         @Override
-        public @Nullable CauldronRecipe fromNetwork(ResourceLocation recipeId, FriendlyByteBuf buffer) {
-            Ingredient input = Ingredient.fromNetwork(buffer);
-            ItemStack output = buffer.readItem();
-            return new CauldronRecipe(recipeId, input, output);
-        }
-
-        @Override
-        public void toNetwork(FriendlyByteBuf buffer, CauldronRecipe recipe) {
-            recipe.input.toNetwork(buffer);
-            buffer.writeItem(recipe.output);
+        public StreamCodec<RegistryFriendlyByteBuf, CauldronRecipe> streamCodec() {
+            return STREAM_CODEC;
         }
     }
 }

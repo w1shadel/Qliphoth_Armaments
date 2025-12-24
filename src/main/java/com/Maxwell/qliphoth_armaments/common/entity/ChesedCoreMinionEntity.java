@@ -1,7 +1,7 @@
-package com.Maxwell.qliphoth_armaments.common.entity;
+package com.maxwell.qliphoth_armaments.common.entity;
 
-import com.Maxwell.qliphoth_armaments.api.ElementalReactionManager;
-import com.Maxwell.qliphoth_armaments.api.QAElements;
+import com.maxwell.qliphoth_armaments.api.ElementalReactionManager;
+import com.maxwell.qliphoth_armaments.api.QAElements;
 import com.finderfeed.fdbosses.client.particles.chesed_attack_ray.ChesedRayOptions;
 import com.finderfeed.fdbosses.content.entities.chesed_boss.ChesedBossBuddy;
 import com.finderfeed.fdbosses.init.BossAnims;
@@ -473,11 +473,11 @@ public class ChesedCoreMinionEntity extends FDMob implements ChesedBossBuddy {
     }
 
     @Override
-    protected void defineSynchedData() {
-        super.defineSynchedData();
-        this.entityData.define(DATA_OWNER_ID, Optional.empty());
-        this.entityData.define(DATA_FORMATION_SLOT, 0);
-        this.entityData.define(DATA_IS_AWAKENED, false);
+    protected void defineSynchedData(SynchedEntityData.Builder builder) {
+        super.defineSynchedData(builder);
+        builder.define(DATA_OWNER_ID, Optional.empty());
+        builder.define(DATA_FORMATION_SLOT, 0);
+        builder.define(DATA_IS_AWAKENED, false);
     }
 
     public void setFormationSlot(int slot) {

@@ -1,21 +1,21 @@
-package com.Maxwell.qliphoth_armaments.init;
+package com.maxwell.qliphoth_armaments.init;
 
-import com.Maxwell.qliphoth_armaments.QA;
-import com.Maxwell.qliphoth_armaments.common.util.GradientTextUtil;
-import net.minecraft.core.registries.Registries;
+import com.maxwell.qliphoth_armaments.QA;
+import com.maxwell.qliphoth_armaments.common.util.GradientTextUtil;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.world.item.CreativeModeTab;
 import net.minecraft.world.item.ItemStack;
-import net.minecraftforge.registries.DeferredRegister;
-import net.minecraftforge.registries.RegistryObject;
+import net.neoforged.neoforge.registries.DeferredHolder;
+import net.neoforged.neoforge.registries.DeferredRegister;
 
 import java.awt.*;
 
 public class ModCreativeTabs {
 
     public static final DeferredRegister<CreativeModeTab> TABS =
-            DeferredRegister.create(Registries.CREATIVE_MODE_TAB, QA.MOD_ID);
+            DeferredRegister.create(BuiltInRegistries.CREATIVE_MODE_TAB, QA.MOD_ID);
 
-    public static final RegistryObject<CreativeModeTab> QLIPHOTH_ARMAMENTS =
+    public static final DeferredHolder<CreativeModeTab, CreativeModeTab> QLIPHOTH_ARMAMENTS =
             TABS.register("qliphoth_armaments", () ->
                     CreativeModeTab.builder()
                             .title(GradientTextUtil.createGradient(
