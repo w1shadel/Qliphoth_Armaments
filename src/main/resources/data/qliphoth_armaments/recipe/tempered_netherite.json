@@ -1,0 +1,9 @@
+{
+  "type": "qliphoth_armaments:cauldron_brewing",
+  "ingredient": {
+    "item": "qliphoth_armaments:heated_netherite"
+  },
+  "result": {
+    "id": "qliphoth_armaments:tempered_netherite"
+  }
+}

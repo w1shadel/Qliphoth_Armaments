@@ -1,14 +1,12 @@
-package com.Maxwell.qliphoth_armaments.common.entity;
+package com.maxwell.qliphoth_armaments.common.entity;
 
-import com.Maxwell.qliphoth_armaments.api.ElementalReactionManager;
-import com.Maxwell.qliphoth_armaments.api.QAElements;
-import com.Maxwell.qliphoth_armaments.init.ModEntities;
+import com.maxwell.qliphoth_armaments.api.ElementalReactionManager;
+import com.maxwell.qliphoth_armaments.api.QAElements;
+import com.maxwell.qliphoth_armaments.init.ModEntities;
 import com.finderfeed.fdbosses.client.BossParticles;
 import com.finderfeed.fdbosses.client.particles.arc_lightning.ArcLightningOptions;
-import com.finderfeed.fdbosses.config.BossClientConfig;
 import com.finderfeed.fdbosses.content.entities.chesed_boss.ChesedBossBuddy;
 import com.finderfeed.fdbosses.init.BossAnims;
-import com.finderfeed.fdbosses.init.BossConfigs;
 import com.finderfeed.fdbosses.init.BossSounds;
 import com.finderfeed.fdlib.FDLibCalls;
 import com.finderfeed.fdlib.nbt.AutoSerializable;
@@ -42,7 +40,7 @@ public class MinionElectricSphereEntity extends FDLivingEntity implements AutoSe
     private float damage;
     @Nullable
     private UUID ownerUUID;
-
+    private static final int MAX_LIFESPAN_TICKS = 200;
     @Nullable
     @Override
     public LivingEntity getKillCredit() {
@@ -92,35 +90,47 @@ public class MinionElectricSphereEntity extends FDLivingEntity implements AutoSe
     public void tick() {
         this.noPhysics = true;
         super.tick();
+
         if (!this.level().isClientSide) {
-            if (this.path != null) {
-                if (!this.path.isFinished()) {
-                    this.path.tick(this);
-                } else {
-                    this.explode();
-                    this.discard();
-                }
+
+            if (this.path == null) {
+                this.discard(); 
+                return;         
             }
+
+            if (this.tickCount > MAX_LIFESPAN_TICKS) {
+                this.explode();
+                this.discard();
+                return;
+            }
+
+            if (this.path.isFinished()) {
+                this.explode();
+                this.discard();
+                return;
+            }
+
+            this.path.tick(this);
             this.detectEntitiesAndExplode();
-        } else {
+
+        }
+
+        else {
             this.idleParticles();
+
             this.getAnimationSystem().startAnimation("IDLE", AnimationTicker.builder((Animation) BossAnims.ELECTRIC_ORB_IDLE.get()).build());
         }
     }
-
     private void idleParticles() {
-        if (!((BossClientConfig) BossConfigs.BOSS_CONFIG_CLIENT.get()).lessParticles) {
-            if (this.tickCount >= 10) {
-                if (this.tickCount % 3 == 0) {
-                    for (int i = 0; i < 1; ++i) {
-                        float offs = 0.25F;
-                        Vec3 p1 = this.position().add((double) this.random.nextFloat() * 0.025 - 0.0125, (double) offs, (double) this.random.nextFloat() * 0.025 - 0.0125);
-                        Vec3 p2 = this.position().add((double) 0.0F, (double) (this.getBbHeight() - offs), (double) 0.0F);
-                        Vec3 sp = this.getDeltaMovement();
-                        this.level().addParticle(ArcLightningOptions.builder((ParticleType) BossParticles.ARC_LIGHTNING.get()).end(p2.x, p2.y, p2.z).endSpeed(sp).lifetime(2).color(1 + this.random.nextInt(40), 183 + this.random.nextInt(60), 165 + this.random.nextInt(60)).lightningSpread(0.25F).width(0.1F).segments(6).circleOffset(0.25F).build(), false, p1.x, p1.y, p1.z, sp.x, sp.y, sp.z);
-                    }
-                }
+        if (this.tickCount >= 10) {
+            for (int i = 0; i < 1; ++i) {
+                float offs = 0.25F;
+                Vec3 p1 = this.position().add((double) this.random.nextFloat() * 0.025 - 0.0125, (double) offs, (double) this.random.nextFloat() * 0.025 - 0.0125);
+                Vec3 p2 = this.position().add((double) 0.0F, (double) (this.getBbHeight() - offs), (double) 0.0F);
+                Vec3 sp = this.getDeltaMovement();
+                this.level().addParticle(ArcLightningOptions.builder((ParticleType) BossParticles.ARC_LIGHTNING.get()).end(p2.x, p2.y, p2.z).endSpeed(sp).lifetime(2).color(1 + this.random.nextInt(40), 183 + this.random.nextInt(60), 165 + this.random.nextInt(60)).lightningSpread(0.25F).width(0.1F).segments(6).circleOffset(0.25F).build(), true, p1.x, p1.y, p1.z, sp.x, sp.y, sp.z);
             }
+
         }
     }
 

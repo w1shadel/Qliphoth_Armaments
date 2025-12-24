@@ -1,19 +1,19 @@
-package com.Maxwell.qliphoth_armaments.client;
+package com.maxwell.qliphoth_armaments.client;
 
-import com.Maxwell.qliphoth_armaments.QA;
-import com.Maxwell.qliphoth_armaments.init.ModEntities;
+import com.maxwell.qliphoth_armaments.QA;
+import com.maxwell.qliphoth_armaments.init.ModEntities;
 import com.finderfeed.fdbosses.FDBosses;
 import com.finderfeed.fdbosses.init.BossModels;
 import com.finderfeed.fdlib.systems.bedrock.animations.animation_system.entity.renderer.FDEntityRenderLayerOptions;
 import com.finderfeed.fdlib.systems.bedrock.animations.animation_system.entity.renderer.FDEntityRendererBuilder;
 import net.minecraft.client.renderer.RenderType;
 import net.minecraft.util.Mth;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.client.event.EntityRenderersEvent;
-import net.minecraftforge.eventbus.api.SubscribeEvent;
-import net.minecraftforge.fml.common.Mod;
+import net.neoforged.api.distmarker.Dist;
+import net.neoforged.bus.api.SubscribeEvent;
+import net.neoforged.fml.common.EventBusSubscriber;
+import net.neoforged.neoforge.client.event.EntityRenderersEvent;
 
-@Mod.EventBusSubscriber(modid = QA.MOD_ID, bus = Mod.EventBusSubscriber.Bus.MOD, value = Dist.CLIENT)
+@EventBusSubscriber(modid = QA.MOD_ID, bus = EventBusSubscriber.Bus.GAME, value = Dist.CLIENT)
 public class ClientModEvents {
 
     @SubscribeEvent
@@ -47,7 +47,7 @@ public class ClientModEvents {
                         .build());
         event.registerEntityRenderer(
                 ModEntities.MALKUTH_PLAYER_LOGIC.get(),
-                EmptyRenderer::new
+               com.maxwell.qliphoth_armaments.client.EmptyRenderer::new
         );
     }
 }
