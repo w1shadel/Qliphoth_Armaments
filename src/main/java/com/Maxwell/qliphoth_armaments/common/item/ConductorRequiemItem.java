@@ -4,6 +4,7 @@ import com.finderfeed.fdbosses.content.data_components.ItemCoreDataComponent;
 import com.finderfeed.fdbosses.init.BossDataComponents;
 import com.maxwell.qliphoth_armaments.common.entity.ChesedCoreMinionEntity;
 import com.maxwell.qliphoth_armaments.common.util.GradientTextUtil;
+import com.maxwell.qliphoth_armaments.config.QAConfig;
 import com.maxwell.qliphoth_armaments.init.ModEntities;
 import com.finderfeed.fdbosses.client.BossParticles;
 import com.finderfeed.fdbosses.client.particles.arc_lightning.ArcLightningOptions;
@@ -70,8 +71,7 @@ public class ConductorRequiemItem extends SwordItem implements QAModWeapon {
             return;
         }
         player.getPersistentData().putBoolean(TAG_HAS_ORCHESTRATOR, true);
-        boolean isHolding = player.getMainHandItem() == stack || player.getOffhandItem() == stack;
-        int desiredCount = isHolding ? 4 : 1;
+        int desiredCount = getDesiredCount(stack, slotId, player);
         boolean isAwakened = hasCore(stack);
         manageMinions(player, (ServerLevel) level, desiredCount, isAwakened);
         if (player.getMainHandItem() == stack) {
@@ -100,6 +100,23 @@ public class ConductorRequiemItem extends SwordItem implements QAModWeapon {
                 }
             }
         }
+    }
+
+    private static int getDesiredCount(ItemStack stack, int slotId, Player player) {
+        boolean isHolding = player.getMainHandItem() == stack || player.getOffhandItem() == stack;
+        boolean hotbarOnly = QAConfig.COMMON.conductorRequiemHotbarOnly.get();
+        boolean isInHotbarOrOffhand = (slotId >= 0 && slotId <= 8) || slotId == 40;
+        int desiredCount;
+        if (isHolding) {
+            desiredCount = 4;
+        } else {
+            if (hotbarOnly) {
+                desiredCount = isInHotbarOrOffhand ? 1 : 0;
+            } else {
+                desiredCount = 1;
+            }
+        }
+        return desiredCount;
     }
 
     private static final int LONG_PRESS_THRESHOLD = 20;
