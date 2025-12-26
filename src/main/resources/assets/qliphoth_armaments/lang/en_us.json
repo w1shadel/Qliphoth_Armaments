@@ -1,5 +1,12 @@
 {
   "jei.qliphoth_armaments.category.cauldron_brewing": "Cauldron Tempering",
+  "item.qliphoth_armaments.fire_malkuth_warriors_battle_axe": "Flame Battle Axe",
+  "item.qliphoth_armaments.ice_malkuth_warriors_battle_axe": "Ice Battle Axe",
+  "item.qliphoth_armaments.knight_scrap": "Knight's Remains",
+  "item.qliphoth_armaments.knight_scrap.desc": "Obtained by defeating Malkuth Warrior",
+  "item.qliphoth_armaments.seismic_axe.lore": "A battle axe distributed to a loyal subordinate",
+  "item.qliphoth_armaments.mw_item.r_skill_1": "Right click: Fire/Ice shockwave",
+  "item.qliphoth_armaments.mw_item.r_skill_2": "Creates a shock wave that spreads forward.",
   "item.qliphoth_armaments.conductors_requiem": "Conductor's Requiem",
   "item.qliphoth_armaments.maximum_quietus": "Maximum Quietus",
   "item.qliphoth_armaments.conductors_requiem.lore": "The conductor of lightning, who has waited for eternity.",

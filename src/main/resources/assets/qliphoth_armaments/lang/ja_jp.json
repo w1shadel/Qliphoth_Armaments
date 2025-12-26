@@ -1,5 +1,12 @@
 {
   "jei.qliphoth_armaments.category.cauldron_brewing": "焼き入れ",
+  "item.qliphoth_armaments.fire_malkuth_warriors_battle_axe": "炎の戦斧",
+  "item.qliphoth_armaments.ice_malkuth_warriors_battle_axe": "氷の戦斧",
+  "item.qliphoth_armaments.knight_scrap": "騎士の残骸",
+  "item.qliphoth_armaments.knight_scrap.desc": "Malkuth Warriorを倒して獲得",
+  "item.qliphoth_armaments.seismic_axe.lore": "忠実な部下に配られた戦斧",
+  "item.qliphoth_armaments.mw_item.r_skill_1": "右クリック：炎/氷の衝撃波",
+  "item.qliphoth_armaments.mw_item.r_skill_2": "前方に広がる衝撃波を作り出す。",
   "item.qliphoth_armaments.conductors_requiem": "雷鳴の指揮者の絶唱",
   "item.qliphoth_armaments.maximum_quietus": "炎氷の支配者",
   "item.qliphoth_armaments.conductors_requiem.lore": "悠久の時を待ち続けた雷の指揮者",

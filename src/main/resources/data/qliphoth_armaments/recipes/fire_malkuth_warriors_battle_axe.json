@@ -1,0 +1,23 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "CBA",
+    " B ",
+    " A "
+  ],
+  "key": {
+    "A": {
+      "item": "qliphoth_armaments:knight_scrap"
+    },
+    "B": {
+      "item": "minecraft:blackstone"
+    },
+    "C": {
+      "item": "minecraft:ice"
+    }
+  },
+  "result": {
+    "item": "qliphoth_armaments:fire_malkuth_warriors_battle_axe",
+    "count": 1
+  }
+}
