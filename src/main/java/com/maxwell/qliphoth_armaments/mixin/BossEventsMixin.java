@@ -1,7 +1,7 @@
 package com.maxwell.qliphoth_armaments.mixin;
 
-import com.maxwell.qliphoth_armaments.common.item.QAModWeapon;
 import com.finderfeed.fdbosses.BossEvents;
+import com.maxwell.qliphoth_armaments.common.item.QAModWeapon;
 import net.minecraftforge.event.entity.player.PlayerInteractEvent;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;

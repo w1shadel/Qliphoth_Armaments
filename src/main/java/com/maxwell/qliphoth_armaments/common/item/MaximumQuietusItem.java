@@ -1,10 +1,5 @@
 package com.maxwell.qliphoth_armaments.common.item;
 
-import com.maxwell.qliphoth_armaments.api.ElementalReactionManager;
-import com.maxwell.qliphoth_armaments.api.QAElements;
-import com.maxwell.qliphoth_armaments.common.entity.MalkuthPlayerAttackLogic;
-import com.maxwell.qliphoth_armaments.common.entity.PlayerCannonProjectile;
-import com.maxwell.qliphoth_armaments.common.util.GradientTextUtil;
 import com.finderfeed.fdbosses.BossUtil;
 import com.finderfeed.fdbosses.content.data_components.ItemCoreDataComponent;
 import com.finderfeed.fdbosses.content.entities.malkuth_boss.MalkuthAttackType;
@@ -15,6 +10,11 @@ import com.finderfeed.fdbosses.init.BossSounds;
 import com.finderfeed.fdlib.systems.shake.FDShakeData;
 import com.finderfeed.fdlib.systems.shake.PositionedScreenShakePacket;
 import com.finderfeed.fdlib.util.client.particles.ball_particle.BallParticleOptions;
+import com.maxwell.qliphoth_armaments.api.ElementalReactionManager;
+import com.maxwell.qliphoth_armaments.api.QAElements;
+import com.maxwell.qliphoth_armaments.common.entity.MalkuthPlayerAttackLogic;
+import com.maxwell.qliphoth_armaments.common.entity.PlayerCannonProjectile;
+import com.maxwell.qliphoth_armaments.common.util.GradientTextUtil;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.nbt.CompoundTag;

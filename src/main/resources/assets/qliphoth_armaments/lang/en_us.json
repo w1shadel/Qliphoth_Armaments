@@ -1,5 +1,10 @@
 {
   "jei.qliphoth_armaments.category.cauldron_brewing": "Cauldron Tempering",
+  "item.qliphoth_armaments.seraphim_railgun": "Seraphim Railgun",
+  "item.qliphoth_armaments.seraphim_railgun.lore": "Fusion technology of tuning fork and lightning.",
+  "item.qliphoth_armaments.seraphim_railgun.lore_fuse": "[Angelic noises]",
+  "item.qliphoth_armaments.seraphim_railgun.r_skill_1": "Right Click: Swansong",
+  "item.qliphoth_armaments.seraphim_railgun.r_skill_2": "After a long charge, fires a laser that brings catastrophic damage. Equipping a core enhances it further.",
   "item.qliphoth_armaments.fire_malkuth_warriors_battle_axe": "Flame Battle Axe",
   "item.qliphoth_armaments.ice_malkuth_warriors_battle_axe": "Ice Battle Axe",
   "item.qliphoth_armaments.knight_scrap": "Knight's Remains",

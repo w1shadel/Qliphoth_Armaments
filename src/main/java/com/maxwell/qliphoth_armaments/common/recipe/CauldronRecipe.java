@@ -1,7 +1,7 @@
 package com.maxwell.qliphoth_armaments.common.recipe;
 
-import com.maxwell.qliphoth_armaments.init.ModRecipes;
 import com.google.gson.JsonObject;
+import com.maxwell.qliphoth_armaments.init.ModRecipes;
 import net.minecraft.core.RegistryAccess;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.resources.ResourceLocation;

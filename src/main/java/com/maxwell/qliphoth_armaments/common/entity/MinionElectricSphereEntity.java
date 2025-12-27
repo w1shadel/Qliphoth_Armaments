@@ -1,8 +1,5 @@
 package com.maxwell.qliphoth_armaments.common.entity;
 
-import com.maxwell.qliphoth_armaments.api.ElementalReactionManager;
-import com.maxwell.qliphoth_armaments.api.QAElements;
-import com.maxwell.qliphoth_armaments.init.ModEntities;
 import com.finderfeed.fdbosses.client.BossParticles;
 import com.finderfeed.fdbosses.client.particles.arc_lightning.ArcLightningOptions;
 import com.finderfeed.fdbosses.config.BossClientConfig;
@@ -18,6 +15,9 @@ import com.finderfeed.fdlib.systems.bedrock.animations.animation_system.entity.F
 import com.finderfeed.fdlib.util.ProjectileMovementPath;
 import com.finderfeed.fdlib.util.client.particles.ball_particle.BallParticleOptions;
 import com.finderfeed.fdlib.util.client.particles.lightning_particle.LightningParticleOptions;
+import com.maxwell.qliphoth_armaments.api.ElementalReactionManager;
+import com.maxwell.qliphoth_armaments.api.QAElements;
+import com.maxwell.qliphoth_armaments.init.ModEntities;
 import net.minecraft.core.particles.ParticleType;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.server.level.ServerLevel;

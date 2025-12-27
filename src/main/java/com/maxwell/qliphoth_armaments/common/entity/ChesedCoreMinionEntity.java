@@ -1,7 +1,5 @@
 package com.maxwell.qliphoth_armaments.common.entity;
 
-import com.maxwell.qliphoth_armaments.api.ElementalReactionManager;
-import com.maxwell.qliphoth_armaments.api.QAElements;
 import com.finderfeed.fdbosses.client.particles.chesed_attack_ray.ChesedRayOptions;
 import com.finderfeed.fdbosses.content.entities.chesed_boss.ChesedBossBuddy;
 import com.finderfeed.fdbosses.init.BossAnims;
@@ -17,6 +15,8 @@ import com.finderfeed.fdlib.systems.shake.PositionedScreenShakePacket;
 import com.finderfeed.fdlib.util.ProjectileMovementPath;
 import com.finderfeed.fdlib.util.client.particles.ball_particle.BallParticleOptions;
 import com.finderfeed.fdlib.util.client.particles.lightning_particle.LightningParticleOptions;
+import com.maxwell.qliphoth_armaments.api.ElementalReactionManager;
+import com.maxwell.qliphoth_armaments.api.QAElements;
 import net.minecraft.commands.arguments.EntityAnchorArgument;
 import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;

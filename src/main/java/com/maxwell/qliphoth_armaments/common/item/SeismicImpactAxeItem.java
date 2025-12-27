@@ -1,14 +1,14 @@
 package com.maxwell.qliphoth_armaments.common.item;
 
-import com.maxwell.qliphoth_armaments.api.ElementalReactionManager;
-import com.maxwell.qliphoth_armaments.api.QAElements;
-import com.maxwell.qliphoth_armaments.common.entity.MalkuthPlayerAttackLogic;
-import com.maxwell.qliphoth_armaments.common.util.GradientTextUtil;
 import com.finderfeed.fdbosses.content.entities.malkuth_boss.MalkuthAttackType;
 import com.finderfeed.fdbosses.content.entities.malkuth_boss.MalkuthDamageSource;
 import com.finderfeed.fdbosses.content.entities.malkuth_boss.malkuth_earthquake.MalkuthEarthquake;
 import com.finderfeed.fdlib.systems.shake.FDShakeData;
 import com.finderfeed.fdlib.systems.shake.PositionedScreenShakePacket;
+import com.maxwell.qliphoth_armaments.api.ElementalReactionManager;
+import com.maxwell.qliphoth_armaments.api.QAElements;
+import com.maxwell.qliphoth_armaments.common.entity.MalkuthPlayerAttackLogic;
+import com.maxwell.qliphoth_armaments.common.util.GradientTextUtil;
 import net.minecraft.ChatFormatting;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerLevel;
@@ -30,7 +30,7 @@ import javax.annotation.Nullable;
 import java.awt.*;
 import java.util.List;
 
-public class SeismicImpactAxeItem extends AxeItem {
+public class SeismicImpactAxeItem extends AxeItem implements QAModWeapon{
 
     private final QAElements element;
     private static final float EARTHQUAKE_DAMAGE_MULTIPLIER = 3.0F;

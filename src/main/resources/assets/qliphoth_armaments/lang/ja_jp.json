@@ -1,5 +1,10 @@
 {
   "jei.qliphoth_armaments.category.cauldron_brewing": "焼き入れ",
+  "item.qliphoth_armaments.seraphim_railgun.lore_fuse": "[天使のような音]",
+  "item.qliphoth_armaments.seraphim_railgun.lore": "音叉と雷の融合技術",
+  "item.qliphoth_armaments.seraphim_railgun": "セラフィム・レールガン",
+  "item.qliphoth_armaments.seraphim_railgun.r_skill_1": "右クリック：絶唱",
+  "item.qliphoth_armaments.seraphim_railgun.r_skill_2": "長いチャージの後前方に壊滅的な被害を齎すレーザーを発射する。コアを装備すると更に強化される。",
   "item.qliphoth_armaments.fire_malkuth_warriors_battle_axe": "炎の戦斧",
   "item.qliphoth_armaments.ice_malkuth_warriors_battle_axe": "氷の戦斧",
   "item.qliphoth_armaments.knight_scrap": "騎士の残骸",

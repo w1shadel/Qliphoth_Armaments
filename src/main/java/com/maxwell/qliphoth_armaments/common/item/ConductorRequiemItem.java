@@ -1,9 +1,5 @@
 package com.maxwell.qliphoth_armaments.common.item;
 
-import com.maxwell.qliphoth_armaments.common.config.QAConfig;
-import com.maxwell.qliphoth_armaments.common.entity.ChesedCoreMinionEntity;
-import com.maxwell.qliphoth_armaments.common.util.GradientTextUtil;
-import com.maxwell.qliphoth_armaments.init.ModEntities;
 import com.finderfeed.fdbosses.client.BossParticles;
 import com.finderfeed.fdbosses.client.particles.arc_lightning.ArcLightningOptions;
 import com.finderfeed.fdbosses.content.data_components.ItemCoreDataComponent;
@@ -12,6 +8,10 @@ import com.finderfeed.fdbosses.init.BossSounds;
 import com.finderfeed.fdlib.FDLibCalls;
 import com.finderfeed.fdlib.systems.shake.FDShakeData;
 import com.finderfeed.fdlib.systems.shake.PositionedScreenShakePacket;
+import com.maxwell.qliphoth_armaments.common.config.QAConfig;
+import com.maxwell.qliphoth_armaments.common.entity.ChesedCoreMinionEntity;
+import com.maxwell.qliphoth_armaments.common.util.GradientTextUtil;
+import com.maxwell.qliphoth_armaments.init.ModEntities;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.core.particles.ParticleType;

@@ -1,13 +1,13 @@
 package com.maxwell.qliphoth_armaments.common.entity;
 
-import com.maxwell.qliphoth_armaments.api.ElementalReactionManager;
-import com.maxwell.qliphoth_armaments.api.QAElements;
 import com.finderfeed.fdbosses.BossUtil;
 import com.finderfeed.fdbosses.content.entities.malkuth_boss.MalkuthAttackType;
 import com.finderfeed.fdbosses.content.entities.malkuth_boss.MalkuthDamageSource;
 import com.finderfeed.fdbosses.content.entities.malkuth_boss.malkuth_cannon.MalkuthCannonProjectile;
 import com.finderfeed.fdbosses.content.entities.malkuth_boss.malkuth_earthquake.MalkuthEarthquake;
 import com.finderfeed.fdbosses.init.BossEntities;
+import com.maxwell.qliphoth_armaments.api.ElementalReactionManager;
+import com.maxwell.qliphoth_armaments.api.QAElements;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.EntityType;

@@ -1,13 +1,13 @@
 package com.maxwell.qliphoth_armaments.api;
 
-import com.maxwell.qliphoth_armaments.api.capabilities.CapabilityHandler;
-import com.maxwell.qliphoth_armaments.api.capabilities.IElementalState;
-import com.maxwell.qliphoth_armaments.common.network.PacketHandler;
-import com.maxwell.qliphoth_armaments.common.network.PacketSyncElementalState;
 import com.finderfeed.fdbosses.content.entities.malkuth_boss.MalkuthAttackType;
 import com.finderfeed.fdbosses.content.entities.malkuth_boss.MalkuthEntity;
 import com.finderfeed.fdbosses.init.BossEffects;
 import com.finderfeed.fdbosses.init.BossEntities;
+import com.maxwell.qliphoth_armaments.api.capabilities.CapabilityHandler;
+import com.maxwell.qliphoth_armaments.api.capabilities.IElementalState;
+import com.maxwell.qliphoth_armaments.common.network.PacketHandler;
+import com.maxwell.qliphoth_armaments.common.network.PacketSyncElementalState;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.sounds.SoundEvents;
