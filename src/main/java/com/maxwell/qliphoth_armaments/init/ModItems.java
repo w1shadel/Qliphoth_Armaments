@@ -8,6 +8,7 @@ import net.minecraft.world.item.Item;
 import net.minecraft.world.item.Tiers;
 import net.minecraftforge.registries.DeferredRegister;
 import net.minecraftforge.registries.ForgeRegistries;
+import net.minecraftforge.registries.RegistryObject;
 
 import java.util.function.Supplier;
 
@@ -21,5 +22,7 @@ public class ModItems {
     public static final Supplier<Item> KNIGHT_SCRAP = ITEMS.register("knight_scrap", () -> new ComponentItem(new Item.Properties(), Component.translatable("item.qliphoth_armaments.knight_scrap.desc")));
     public static final Supplier<Item> FIRE_M_BATTLEAXE = ITEMS.register("fire_malkuth_warriors_battle_axe", () -> new SeismicImpactAxeItem(Tiers.DIAMOND, 2, -2.1f, new Item.Properties(), QAElements.FIRE));
     public static final Supplier<Item> ICE_M_BATTLEAXE = ITEMS.register("ice_malkuth_warriors_battle_axe", () -> new SeismicImpactAxeItem(Tiers.DIAMOND, 2, -2.2f, new Item.Properties(), QAElements.ICE));
-    public static final Supplier<Item> SERAPHIM_RAILGUN = ITEMS.register("seraphim_railgun", () -> new LaserRifleItem(Tiers.DIAMOND, 1, -3.9f, new Item.Properties()));
+    public static final Supplier<Item> SERAPHIM_RAILGUN = ITEMS.register("seraphim_railgun", () -> new SeraphimRailGunItem(Tiers.DIAMOND, 1, -3.1f, new Item.Properties()));
+    public static final Supplier<Item> THE_SOVEREIGNTY = ITEMS.register("the_sovereignty", () -> new TheSovereigntyItem(Tiers.NETHERITE, 10, -2.8f, new Item.Properties()));
+
 }

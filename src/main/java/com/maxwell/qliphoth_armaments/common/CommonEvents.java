@@ -2,7 +2,6 @@ package com.maxwell.qliphoth_armaments.common;
 
 import com.maxwell.qliphoth_armaments.QA;
 import com.maxwell.qliphoth_armaments.common.entity.ChesedCoreMinionEntity;
-import com.maxwell.qliphoth_armaments.common.item.ConductorRequiemItem;
 import com.maxwell.qliphoth_armaments.common.recipe.CauldronRecipe;
 import com.maxwell.qliphoth_armaments.init.ModRecipes;
 import net.minecraft.core.BlockPos;
@@ -16,7 +15,6 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.LayeredCauldronBlock;
 import net.minecraft.world.level.block.state.BlockState;
-import net.minecraftforge.event.TickEvent;
 import net.minecraftforge.event.entity.living.LivingChangeTargetEvent;
 import net.minecraftforge.event.entity.player.PlayerInteractEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
@@ -26,13 +24,6 @@ import java.util.Optional;
 
 @Mod.EventBusSubscriber(modid = QA.MOD_ID, bus = Mod.EventBusSubscriber.Bus.FORGE)
 public class CommonEvents {
-
-    @SubscribeEvent
-    public static void onPlayerTick(TickEvent.PlayerTickEvent event) {
-        if (event.phase == TickEvent.Phase.END) {
-            ConductorRequiemItem.onPlayerTick(event.player);
-        }
-    }
 
     @SubscribeEvent
     public static void onLivingChangeTarget(LivingChangeTargetEvent event) {

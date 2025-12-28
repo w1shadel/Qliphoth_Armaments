@@ -17,10 +17,12 @@ import com.maxwell.qliphoth_armaments.common.entity.PlayerCannonProjectile;
 import com.maxwell.qliphoth_armaments.common.util.GradientTextUtil;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.gui.screens.Screen;
+import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.sounds.SoundEvent;
+import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResultHolder;
@@ -41,11 +43,17 @@ import java.util.List;
 public class MaximumQuietusItem extends SwordItem implements QAModWeapon {
 
     private static final String TAG_MODE = "AttackMode";
-    private static final int CHARGE_LV2 = 20;
+    private static final int CHARGE_LV1 = 10;
+    private static final int CHARGE_LV2 = 25;
+
     private static final float AWAKENED_MELEE_PROC_MULTIPLIER = 3.5F;
     private static final float CHARGED_SHOT_MULTIPLIER = 3.5F;
     private static final float NORMAL_SHOT_MULTIPLIER = 1.8F;
     private static final float ULTIMATE_SHOT_MULTIPLIER = 6.0F;
+
+    public MaximumQuietusItem(Tier tier, int damage, float speed, Properties properties) {
+        super(tier, damage, speed, properties);
+    }
 
     @Override
     public boolean isDamaged(ItemStack stack) {
@@ -59,10 +67,6 @@ public class MaximumQuietusItem extends SwordItem implements QAModWeapon {
         Color magicPurple = new Color(0x9400D3);
         Color iceBlue = new Color(0x00FFFF);
         return GradientTextUtil.createAnimatedGradient(translatedName, 200, fireRed, magicPurple, iceBlue);
-    }
-
-    public MaximumQuietusItem(Tier tier, int damage, float speed, Properties properties) {
-        super(tier, damage, speed, properties);
     }
 
     private boolean hasCore(ItemStack stack) {
@@ -80,6 +84,8 @@ public class MaximumQuietusItem extends SwordItem implements QAModWeapon {
         if (!target.level().isClientSide() && attacker instanceof Player player) {
             QAElements currentElement = getElementFromStack(stack);
             ElementalReactionManager.applyState(target, currentElement, 100);
+            player.level().playSound(null, target.getX(), target.getY(), target.getZ(),
+                    SoundEvents.PLAYER_ATTACK_STRONG, SoundSource.PLAYERS, 0.8F, 0.8F);
             if (hasCore(stack)) {
                 if (!player.getCooldowns().isOnCooldown(this)) {
                     ServerLevel level = (ServerLevel) target.level();
@@ -92,7 +98,7 @@ public class MaximumQuietusItem extends SwordItem implements QAModWeapon {
                     MalkuthPlayerAttackLogic.summon(level, player, startPos, dir, currentElement,
                             getScaledDamage(player, AWAKENED_MELEE_PROC_MULTIPLIER), false);
                     PositionedScreenShakePacket.send(level,
-                            FDShakeData.builder().amplitude(2.0F).outTime(10).build(),
+                            FDShakeData.builder().amplitude(3.0F).frequency(15.0F).outTime(8).build(),
                             target.position(), 24.0D);
                     player.getCooldowns().addCooldown(this, 10);
                 }
@@ -112,13 +118,11 @@ public class MaximumQuietusItem extends SwordItem implements QAModWeapon {
         boolean isAwakened = hasCore(stack);
         if (isAwakened && player.isShiftKeyDown()) {
             if (!level.isClientSide) toggleMode(stack, player);
-            player.playSound(BossSounds.BUTTON_CLICK.get(), 1.0F, 2.0F);
             player.getCooldowns().addCooldown(this, 5);
             return InteractionResultHolder.success(stack);
         }
         if (!isAwakened && !player.isCrouching()) {
             if (!level.isClientSide) toggleMode(stack, player);
-            player.playSound(BossSounds.BUTTON_CLICK.get(), 1.0F, 2.0F);
             return InteractionResultHolder.success(stack);
         }
         player.startUsingItem(hand);
@@ -133,16 +137,41 @@ public class MaximumQuietusItem extends SwordItem implements QAModWeapon {
         if (isAwakened) {
             return;
         }
+        if (!level.isClientSide && level instanceof ServerLevel serverLevel) {
+            QAElements element = getElementFromStack(stack);
+            MalkuthAttackType visualType = (element == QAElements.FIRE) ? MalkuthAttackType.FIRE : MalkuthAttackType.ICE;
+            Vector3f col = MalkuthEntity.getMalkuthAttackPreparationParticleColor(visualType);
+            if (usedTicks % 2 == 0) {
+                double radius = 1.5;
+                double angle = (usedTicks * 0.5) % (Math.PI * 2);
+                double offsetX = Math.cos(angle) * radius;
+                double offsetZ = Math.sin(angle) * radius;
+                double offsetY = (usedTicks % 10) * 0.1;
+                BallParticleOptions options = BallParticleOptions.builder()
+                        .color(col.x, col.y, col.z).scalingOptions(0, 0, 5).size(0.15F).brightness(3).build();
+                serverLevel.sendParticles(options,
+                        player.getX() + offsetX, player.getY() + 1.0 + offsetY, player.getZ() + offsetZ,
+                        0, -offsetX * 0.1, 0.05, -offsetZ * 0.1, 1.0);
+            }
+            if (usedTicks == CHARGE_LV1) {
+                serverLevel.playSound(null, player.getX(), player.getY(), player.getZ(),
+                        SoundEvents.EXPERIENCE_ORB_PICKUP, SoundSource.PLAYERS, 0.5F, 0.8F);
+            }
+            if (usedTicks == CHARGE_LV2) {
+                serverLevel.playSound(null, player.getX(), player.getY(), player.getZ(),
+                        SoundEvents.PLAYER_LEVELUP, SoundSource.PLAYERS, 0.5F, 1.5F);
+                BallParticleOptions burst = BallParticleOptions.builder()
+                        .color(col.x, col.y, col.z).scalingOptions(0, 0, 10).size(0.3F).brightness(5).build();
+                serverLevel.sendParticles(burst, player.getX(), player.getY() + 1.5, player.getZ(), 10, 0.2, 0.2, 0.2, 0.1);
+            }
+        }
         if (player.isCrouching()) {
             player.addEffect(new MobEffectInstance(MobEffects.MOVEMENT_SLOWDOWN, 5, 255, false, false, false));
             player.addEffect(new MobEffectInstance(MobEffects.DAMAGE_RESISTANCE, 5, 2, false, false, false));
         } else {
-            if (usedTicks > 5) {
-                player.stopUsingItem();
-                return;
+            if (usedTicks > 5 && !isAwakened) {
             }
         }
-
     }
 
     @Override
@@ -159,11 +188,11 @@ public class MaximumQuietusItem extends SwordItem implements QAModWeapon {
 
             } else {
                 if (usedTicks >= CHARGE_LV2) {
-                    shootProjectile((ServerLevel) level, player, elementType, 2.0F,
+                    shootProjectile((ServerLevel) level, player, elementType, 2.5F,
                             getScaledDamage(player, CHARGED_SHOT_MULTIPLIER), false);
                     player.getCooldowns().addCooldown(this, 30);
-                } else {
-                    shootProjectile((ServerLevel) level, player, elementType, 1.0F,
+                } else if (usedTicks >= 5) {
+                    shootProjectile((ServerLevel) level, player, elementType, 1.2F,
                             getScaledDamage(player, NORMAL_SHOT_MULTIPLIER), false);
                     player.getCooldowns().addCooldown(this, 15);
                 }
@@ -179,11 +208,14 @@ public class MaximumQuietusItem extends SwordItem implements QAModWeapon {
         BossUtil.malkuthCannonShoot(level, visualType, spawnPos, look, 50.0);
         PlayerCannonProjectile.summonForPlayer(level, player, spawnPos, velocity, type, damage, false);
         level.playSound(null, player.getX(), player.getY(), player.getZ(),
-                (SoundEvent) BossSounds.MALKUTH_CANNON_SHOOT.get(), SoundSource.PLAYERS, 2.0F, 1.0F);
+                (SoundEvent) BossSounds.MALKUTH_CANNON_SHOOT.get(), SoundSource.PLAYERS, 2.0F, 1.0F + (speedMult * 0.2F));
+        float shakeAmp = 1.0F * speedMult;
         PositionedScreenShakePacket.send(level,
-                FDShakeData.builder().amplitude(1.0F * speedMult).outTime(5).build(),
+                FDShakeData.builder().amplitude(shakeAmp).frequency(20.0F).outTime(5).build(),
                 player.position(), 16.0D);
-        if (!isAwakened) player.push(-look.x * 0.5, 0.1, -look.z * 0.5);
+        if (!isAwakened) {
+            player.push(-look.x * 0.4 * speedMult, 0.1, -look.z * 0.4 * speedMult);
+        }
     }
 
     private void shootUltimate(ServerLevel level, Player player, QAElements type, float damage) {
@@ -199,7 +231,7 @@ public class MaximumQuietusItem extends SwordItem implements QAModWeapon {
         PositionedScreenShakePacket.send(level,
                 FDShakeData.builder().frequency(40.0F).amplitude(5.0F).inTime(2).stayTime(5).outTime(10).build(),
                 player.position(), 64.0D);
-        player.push(-look.x * 1.5, 0.3, -look.z * 1.5);
+        player.push(-look.x * 1.5, 0.4, -look.z * 1.5);
     }
 
     private void spawnPlayerChargeParticles(ServerLevel level, Player player, MalkuthAttackType type) {
@@ -227,9 +259,24 @@ public class MaximumQuietusItem extends SwordItem implements QAModWeapon {
         int currentMode = tag.getInt(TAG_MODE);
         int newMode = (currentMode == 0) ? 1 : 0;
         tag.putInt(TAG_MODE, newMode);
-        Component modeName = (newMode == 0)
-                ? Component.literal("Fire").withStyle(ChatFormatting.GOLD)
-                : Component.literal("Ice").withStyle(ChatFormatting.AQUA);
+        Component modeName;
+        float pitch;
+        if (newMode == 0) {
+            modeName = Component.literal("Fire").withStyle(ChatFormatting.GOLD, ChatFormatting.BOLD);
+            pitch = 0.8F;
+            if (!player.level().isClientSide) {
+                ((ServerLevel) player.level()).sendParticles(ParticleTypes.FLAME,
+                        player.getX(), player.getY() + 0.5, player.getZ(), 20, 0.5, 0.5, 0.5, 0.05);
+            }
+        } else {
+            modeName = Component.literal("Ice").withStyle(ChatFormatting.AQUA, ChatFormatting.BOLD);
+            pitch = 1.2F;
+            if (!player.level().isClientSide) {
+                ((ServerLevel) player.level()).sendParticles(ParticleTypes.SNOWFLAKE,
+                        player.getX(), player.getY() + 0.5, player.getZ(), 20, 0.5, 0.5, 0.5, 0.05);
+            }
+        }
+        player.playSound(BossSounds.BUTTON_CLICK.get(), 1.0F, pitch);
         player.displayClientMessage(Component.translatable("Mode Switched: %s", modeName), true);
     }
 
@@ -246,6 +293,10 @@ public class MaximumQuietusItem extends SwordItem implements QAModWeapon {
         } else {
             tooltip.add(Component.translatable("item.qliphoth_armaments.maximum_quietus.lore").withStyle(ChatFormatting.GRAY, ChatFormatting.ITALIC));
         }
+        tooltip.add(Component.empty());
+        QAElements mode = getElementFromStack(stack);
+        ChatFormatting color = (mode == QAElements.FIRE) ? ChatFormatting.GOLD : ChatFormatting.AQUA;
+        tooltip.add(Component.translatable("Current Mode: ").append(Component.literal(mode.name()).withStyle(color)));
         tooltip.add(Component.empty());
         if (Screen.hasShiftDown()) {
             addPassiveSkill(tooltip,
@@ -273,5 +324,4 @@ public class MaximumQuietusItem extends SwordItem implements QAModWeapon {
             addPressShiftHint(tooltip);
         }
     }
-
 }

@@ -5,6 +5,8 @@ import com.finderfeed.fdbosses.init.BossModels;
 import com.finderfeed.fdlib.systems.bedrock.animations.animation_system.entity.renderer.FDEntityRenderLayerOptions;
 import com.finderfeed.fdlib.systems.bedrock.animations.animation_system.entity.renderer.FDEntityRendererBuilder;
 import com.maxwell.qliphoth_armaments.QA;
+import com.maxwell.qliphoth_armaments.client.renderer.MalkuthRampageSwordRenderer;
+import com.maxwell.qliphoth_armaments.client.renderer.PlayerChainRenderer;
 import com.maxwell.qliphoth_armaments.init.ModEntities;
 import net.minecraft.client.renderer.RenderType;
 import net.minecraft.util.Mth;
@@ -12,7 +14,6 @@ import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.client.event.EntityRenderersEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
-
 @Mod.EventBusSubscriber(modid = QA.MOD_ID, bus = Mod.EventBusSubscriber.Bus.MOD, value = Dist.CLIENT)
 public class ClientModEvents {
     @SubscribeEvent
@@ -48,5 +49,7 @@ public class ClientModEvents {
                 ModEntities.MALKUTH_PLAYER_LOGIC.get(),
                 EmptyRenderer::new
         );
+        event.registerEntityRenderer(ModEntities.PLAYER_CHANE.get(), PlayerChainRenderer::new);
+        event.registerEntityRenderer(ModEntities.MALKUTH_RAMPAGE_SWORD.get(), MalkuthRampageSwordRenderer::new);
     }
 }
