@@ -145,7 +145,7 @@ public class TheSovereigntyItem extends SwordItem implements QAModWeapon {
         QAElements currentElement = getElementFromStack(stack);
         MalkuthAttackType visualType = (currentElement == QAElements.FIRE) ? MalkuthAttackType.FIRE : MalkuthAttackType.ICE;
         double playerAttackDamage = player.getAttributeValue(Attributes.ATTACK_DAMAGE);
-        float finalDamage = 15.0F + (float) playerAttackDamage;
+        float finalDamage = 13.0F + (float) playerAttackDamage;
         double range = 15.0;
         double angle = Math.PI / 2.5;
         double minDot = Math.cos(angle / 2.0);
