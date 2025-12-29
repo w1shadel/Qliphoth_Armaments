@@ -1,6 +1,5 @@
 package com.maxwell.qliphoth_armaments;
 
-import com.maxwell.qliphoth_armaments.api.capabilities.CapabilityHandler;
 import com.maxwell.qliphoth_armaments.common.entity.ChesedCoreMinionEntity;
 import com.maxwell.qliphoth_armaments.config.QAConfig;
 import com.maxwell.qliphoth_armaments.init.*;
@@ -16,7 +15,7 @@ public class QA {
     public static final String MOD_ID = "qliphoth_armaments";
 
     public QA(IEventBus modEventBus, ModContainer modContainer) {
-        CapabilityHandler.register(modEventBus);
+        ModAttachment.register(modEventBus);
         ModItems.ITEMS.register(modEventBus);
         ModDataComponents.DATA_COMPONENT_TYPES.register(modEventBus);
         ModEntities.ENTITIES.register(modEventBus);
@@ -29,5 +28,6 @@ public class QA {
     private void addEntityAttributes(EntityAttributeCreationEvent event) {
         event.put(ModEntities.CHESED_CORE_MINION.get(), ChesedCoreMinionEntity.createAttributes().build());
         event.put(ModEntities.MINION_ELECTRIC_SPHERE.get(), ChesedCoreMinionEntity.createAttributes().build());
+        event.put(ModEntities.PLAYER_CHANE.get(), ChesedCoreMinionEntity.createAttributes().build());
     }
 }

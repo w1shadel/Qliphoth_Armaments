@@ -1,7 +1,10 @@
 package com.maxwell.qliphoth_armaments.init;
 
 import com.maxwell.qliphoth_armaments.QA;
-import com.maxwell.qliphoth_armaments.common.entity.*;
+import com.maxwell.qliphoth_armaments.common.entity.ChesedCoreMinionEntity;
+import com.maxwell.qliphoth_armaments.common.entity.MalkuthPlayerAttackLogic;
+import com.maxwell.qliphoth_armaments.common.entity.MinionElectricSphereEntity;
+import com.maxwell.qliphoth_armaments.common.entity.PlayerChainEntity;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.MobCategory;
@@ -9,16 +12,15 @@ import net.neoforged.neoforge.registries.DeferredHolder;
 import net.neoforged.neoforge.registries.DeferredRegister;
 
 public class ModEntities {
-    // ForgeRegistries.ENTITY_TYPES ではなく BuiltInRegistries.ENTITY_TYPE を使用します
+
     public static final DeferredRegister<EntityType<?>> ENTITIES =
             DeferredRegister.create(BuiltInRegistries.ENTITY_TYPE, QA.MOD_ID);
 
-    // RegistryObject は DeferredHolder に変わります
     public static final DeferredHolder<EntityType<?>, EntityType<ChesedCoreMinionEntity>> CHESED_CORE_MINION =
             ENTITIES.register("chesed_core_minion",
                     () -> EntityType.Builder.of(ChesedCoreMinionEntity::new, MobCategory.MISC)
                             .sized(0.8F, 0.8F)
-                            .build("chesed_core_minion")); // 1.21でもbuildにはStringキーが必要です
+                            .build("chesed_core_minion"));
 
     public static final DeferredHolder<EntityType<?>, EntityType<MinionElectricSphereEntity>> MINION_ELECTRIC_SPHERE =
             ENTITIES.register("minion_electric_sphere",
@@ -38,10 +40,4 @@ public class ModEntities {
                     () -> EntityType.Builder.<PlayerChainEntity>of(PlayerChainEntity::new, MobCategory.MISC)
                             .sized(1.0F, 1.0F)
                             .build("malkuth_chane_player"));
-
-    public static final DeferredHolder<EntityType<?>, EntityType<MalkuthRampageSwordEntity>> MALKUTH_RAMPAGE_SWORD =
-            ENTITIES.register("malkuth_rampage_sword",
-                    () -> EntityType.Builder.<MalkuthRampageSwordEntity>of(MalkuthRampageSwordEntity::new, MobCategory.MISC)
-                            .sized(1.0F, 1.0F)
-                            .build("malkuth_rampage_sword"));
 }

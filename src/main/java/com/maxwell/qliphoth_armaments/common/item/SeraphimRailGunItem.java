@@ -3,10 +3,8 @@ package com.maxwell.qliphoth_armaments.common.item;
 import com.finderfeed.fdbosses.client.BossParticles;
 import com.finderfeed.fdbosses.client.particles.arc_lightning.ArcLightningOptions;
 import com.finderfeed.fdbosses.client.particles.chesed_attack_ray.ChesedRayOptions;
-import com.finderfeed.fdbosses.content.data_components.ItemCoreDataComponent;
 import com.finderfeed.fdbosses.content.entities.chesed_boss.falling_block.ChesedFallingBlock;
 import com.finderfeed.fdbosses.init.BossDamageSources;
-import com.finderfeed.fdbosses.init.BossDataComponents;
 import com.finderfeed.fdbosses.init.BossSounds;
 import com.finderfeed.fdlib.FDHelpers;
 import com.finderfeed.fdlib.FDLibCalls;
@@ -89,7 +87,6 @@ public class SeraphimRailGunItem extends SwordItem implements QAModWeapon {
         player.setDeltaMovement(0, Math.min(player.getDeltaMovement().y, 0), 0);
         if (!level.isClientSide) {
             ServerLevel serverLevel = (ServerLevel) level;
-            boolean hasCore = hasCore(stack);
             if (duration < MIN_CHARGE_TIME) {
                 if (duration % 2 == 0) {
                     spawnGatheringParticles(serverLevel, player, 1.5, 0.2F, 0.8F, 1.0F);
@@ -160,9 +157,9 @@ public class SeraphimRailGunItem extends SwordItem implements QAModWeapon {
     }
 
     private void performDashAttack(ServerLevel level, Player player, ItemStack stack) {
-        boolean hasCore = hasCore(stack);
         Vec3 look = player.getLookAngle();
-        double speed = hasCore ? 4.0 : 2.5;
+        // コアの分岐を削除し、常に強力なバージョン（4.0）を使用
+        double speed = 4.0;
         Vec3 dashVec = look.scale(speed);
         player.push(dashVec.x, 0.5, dashVec.z);
         player.hurtMarked = true;
@@ -174,7 +171,8 @@ public class SeraphimRailGunItem extends SwordItem implements QAModWeapon {
         Vec3 startPos = player.position();
         Vec3 endPos = startPos.add(dashVec.scale(3.0));
         AABB pathBox = new AABB(startPos, endPos).inflate(3.0);
-        float damage = getScaledDamage(player, hasCore ? 100.0F : 50.0F);
+        // コアの分岐を削除し、常に強力なバージョン（100.0F）を使用
+        float damage = getScaledDamage(player, 100.0F);
         List<Entity> targets = FDHelpers.traceEntities(level, startPos, endPos, 3.0, e -> e != player && e instanceof LivingEntity);
         for (Entity e : targets) {
             if (e instanceof LivingEntity target) {
@@ -192,19 +190,20 @@ public class SeraphimRailGunItem extends SwordItem implements QAModWeapon {
     }
 
     private void performLaserAttack(ServerLevel level, Player owner, ItemStack stack, boolean isOvercharge) {
-        boolean hasCore = hasCore(stack);
         Vec3 startPos = owner.getEyePosition();
         Vec3 lookDir = owner.getLookAngle().normalize();
         double maxRange = isOvercharge ? 350.0D : 256.0D;
         Vec3 endPos = startPos.add(lookDir.scale(maxRange));
-        float width = isOvercharge ? (hasCore ? 35.0F : 25.0F) : (hasCore ? 25.0F : 15.0F);
+        // コアの分岐を削除し、常に強力なバージョンに固定
+        float width = isOvercharge ? 35.0F : 25.0F;
         Color laserColor, lightningColor;
         if (isOvercharge) {
             laserColor = new Color(255, 100, 100);
             lightningColor = new Color(255, 200, 50);
         } else {
-            laserColor = hasCore ? new Color(255, 255, 100) : new Color(150, 255, 255);
-            lightningColor = hasCore ? new Color(255, 255, 220) : new Color(200, 255, 255);
+            // コアの分岐を削除し、常に強力なバージョンに固定
+            laserColor = new Color(255, 255, 100);
+            lightningColor = new Color(255, 255, 220);
         }
         ChesedRayOptions options = ChesedRayOptions.builder()
                 .time(20, 30, 15)
@@ -229,9 +228,9 @@ public class SeraphimRailGunItem extends SwordItem implements QAModWeapon {
                 .color(laserColor.getRed() / 255f, laserColor.getGreen() / 255f, laserColor.getBlue() / 255f)
                 .scalingOptions(0, 5, 20).size(1.0F).brightness(10).build();
         level.sendParticles(blast, startPos.x + lookDir.x, startPos.y + lookDir.y, startPos.z + lookDir.z, 1, 0, 0, 0, 0);
-        double hitRadius = isOvercharge ? (hasCore ? 18.0D : 10.0D) : (hasCore ? 12.0D : 6.0D);
+        // コアの分岐を削除し、常に強力なバージョンに固定
+        double hitRadius = isOvercharge ? 18.0D : 12.0D;
         float baseMult = isOvercharge ? 800.0F : 500.0F;
-        if (!hasCore) baseMult /= 2.0F;
         float damage = getScaledDamage(owner, baseMult);
         List<Entity> hitEntities = FDHelpers.traceEntities(level, startPos, endPos, hitRadius, (entity) -> !(entity instanceof Player));
         for (Entity entity : hitEntities) {
@@ -251,7 +250,8 @@ public class SeraphimRailGunItem extends SwordItem implements QAModWeapon {
         Vec3 hitPos = rayTrace.getLocation();
         int stoneCount = isOvercharge ? 30 : 20;
         summonStonesAfterRayAttack(level, stoneCount, lookDir.reverse(), hitPos, owner);
-        int destructionRadius = isOvercharge ? (hasCore ? 7 : 5) : (hasCore ? 5 : 3);
+        // コアの分岐を削除し、常に強力なバージョンに固定
+        int destructionRadius = isOvercharge ? 7 : 5;
         Vec3 stepVec = lookDir;
         int steps = (int) maxRange;
         Vec3 currentPos = startPos;
@@ -324,7 +324,10 @@ public class SeraphimRailGunItem extends SwordItem implements QAModWeapon {
     public int getUseDuration(ItemStack pStack, LivingEntity entity) {
         return MAX_CHARGE_TIME;
     }
-
+    // ★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★
+    // ★ 修正点: hasCoreメソッドを完全に削除します。 ★
+    // ★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★
+    /*
     private boolean hasCore(ItemStack stack) {
         ItemCoreDataComponent component = stack.get(BossDataComponents.ITEM_CORE);
         if (component != null) {
@@ -332,6 +335,7 @@ public class SeraphimRailGunItem extends SwordItem implements QAModWeapon {
         }
         return false;
     }
+    */
 
     @Override
     public UseAnim getUseAnimation(ItemStack pStack) {
@@ -341,22 +345,20 @@ public class SeraphimRailGunItem extends SwordItem implements QAModWeapon {
     @Override
     public void appendHoverText(ItemStack stack, TooltipContext tooltipContext, List<Component> tooltip, TooltipFlag flag) {
         super.appendHoverText(stack, tooltipContext, tooltip, flag);
-        if (hasCore(stack)) {
-            tooltip.add(Component.translatable("item.qliphoth_armaments.seraphim_railgun.lore_fuse").withStyle(ChatFormatting.GRAY, ChatFormatting.ITALIC));
-        } else {
-            tooltip.add(Component.translatable("item.qliphoth_armaments.seraphim_railgun.lore").withStyle(ChatFormatting.GRAY, ChatFormatting.ITALIC));
-        }
+        tooltip.add(Component.translatable("item.qliphoth_armaments.seraphim_railgun.lore").withStyle(ChatFormatting.GRAY, ChatFormatting.ITALIC));
         tooltip.add(Component.empty());
-        tooltip.add(Component.literal("Short Charge: Lightning Dash").withStyle(ChatFormatting.YELLOW));
-        tooltip.add(Component.literal("Full Charge: Seraphim Railgun").withStyle(ChatFormatting.AQUA));
-        tooltip.add(Component.literal("Over Charge: LIMIT BREAKER").withStyle(ChatFormatting.RED, ChatFormatting.BOLD));
+        tooltip.add(Component.translatable("item.qliphoth_armaments.seraphim_railgun.charge_short").withStyle(ChatFormatting.YELLOW));
+        tooltip.add(Component.translatable("item.qliphoth_armaments.seraphim_railgun.charge_full").withStyle(ChatFormatting.AQUA));
+        tooltip.add(Component.translatable("item.qliphoth_armaments.seraphim_railgun.charge_over").withStyle(ChatFormatting.RED, ChatFormatting.BOLD));
         if (Screen.hasShiftDown()) {
+            tooltip.add(Component.empty());
             addRightClickSkill(tooltip,
                     "item.qliphoth_armaments.seraphim_railgun.r_skill_1",
-                    "item.qliphoth_armaments.seraphim_railgun.r_skill_2");
-            if (!hasCore(stack)) {
-                addFuseHint(tooltip, "item.fdbosses.lightning_core");
-            }
+                    "item.qliphoth_armaments.seraphim_railgun.r_skill_2"
+            );
+            tooltip.add(Component.empty());
+            tooltip.add(Component.translatable("item.qliphoth_armaments.seraphim_railgun.r_skill_3").withStyle(ChatFormatting.DARK_RED, ChatFormatting.ITALIC));
+
         } else {
             addPressShiftHint(tooltip);
         }

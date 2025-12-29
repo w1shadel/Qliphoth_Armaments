@@ -1,19 +1,19 @@
 package com.maxwell.qliphoth_armaments.common.util;
 
-public class MinionControlData {
+public class ModDataControl {
     private int targetMinionCount;
     private boolean isAwakened;
 
-    // 追加: リコイル制御用タイマー
     private int recoilTimer;
+    private int modeToggleDelay = 0;
 
-    public MinionControlData() {
+    public ModDataControl() {
         this.targetMinionCount = 0;
         this.isAwakened = false;
         this.recoilTimer = 0;
+        this.modeToggleDelay = 0;
     }
 
-    // --- Minion関係 (Tickごとにリセットされる一時データ) ---
     public int getTargetMinionCount() {
         return targetMinionCount;
     }
@@ -35,7 +35,18 @@ public class MinionControlData {
         this.isAwakened = false;
     }
 
-    // --- Recoil関係 (Tickを跨いで維持されるデータ) ---
+    public int getModeToggleDelay() {
+        return modeToggleDelay;
+    }
+
+    public void setModeToggleDelay(int delay) {
+        this.modeToggleDelay = delay;
+    }
+
+    public void decrementModeToggleDelay() {
+        if (this.modeToggleDelay > 0) this.modeToggleDelay--;
+    }
+
     public int getRecoilTimer() {
         return recoilTimer;
     }

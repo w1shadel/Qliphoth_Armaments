@@ -40,8 +40,6 @@ import java.awt.*;
 import java.util.List;
 
 public class MaximumQuietusItem extends SwordItem implements QAModWeapon {
-    // NBTキーの文字列定義は不要になりました
-    // private static final String TAG_MODE = "AttackMode";
 
     private static final int CHARGE_LV1 = 10;
     private static final int CHARGE_LV2 = 25;
@@ -78,7 +76,6 @@ public class MaximumQuietusItem extends SwordItem implements QAModWeapon {
     }
 
     private float getScaledDamage(Player owner, float multiplier) {
-        // 1.21ではAttributes.ATTACK_DAMAGEはHolder<Attribute>ですが、getAttributeValueはHolderを受け付けるので変更不要です
         double playerAttack = owner.getAttributeValue(Attributes.ATTACK_DAMAGE);
         float finalDamage = (float) (playerAttack * multiplier);
         return Math.max(1.0f, finalDamage);
@@ -99,7 +96,7 @@ public class MaximumQuietusItem extends SwordItem implements QAModWeapon {
                     if (dir.lengthSqr() < 0.01) dir = player.getForward().multiply(1, 0, 1).normalize();
                     Vec3 startPos = player.position().add(dir.scale(1.5));
                     Vec3 dirAndLen = dir.scale(15.0);
-                    MalkuthEarthquake.summon(level, visualType, startPos, dirAndLen, 20, (float) Math.PI / 3.0F, 0.0F);
+                    summonStableMalkuthEarthquake(level, visualType, startPos, dirAndLen, 20, (float) Math.PI / 3.0F, 0.0F);
                     MalkuthPlayerAttackLogic.summon(level, player, startPos, dir, currentElement,
                             getScaledDamage(player, AWAKENED_MELEE_PROC_MULTIPLIER), false);
                     PositionedScreenShakePacket.send(level,
@@ -110,6 +107,28 @@ public class MaximumQuietusItem extends SwordItem implements QAModWeapon {
             }
         }
         return super.hurtEnemy(stack, target, attacker);
+    }
+
+    private void summonStableMalkuthEarthquake(ServerLevel level, MalkuthAttackType type, Vec3 start, Vec3 direction, int lifetime, float arcAngle, float damage) {
+        try {
+            MalkuthEarthquake.summon(level, type, start, direction, lifetime, arcAngle, damage);
+        } catch (Exception e) {
+            spawnFallbackParticles(level, type, start, direction);
+        }
+    }
+
+    private void spawnFallbackParticles(ServerLevel level, MalkuthAttackType type, Vec3 start, Vec3 dir) {
+        Vector3f col = MalkuthEntity.getMalkuthAttackPreparationParticleColor(type);
+        double length = dir.length();
+        Vec3 normDir = dir.normalize();
+        for (int i = 0; i < length; i++) {
+            if (i % 2 == 0) {
+                Vec3 pos = start.add(normDir.scale(i));
+                BallParticleOptions options = BallParticleOptions.builder()
+                        .color(col.x, col.y, col.z).scalingOptions(0, 0, 4).size(0.15F).brightness(3).build();
+                level.sendParticles(options, pos.x, pos.y + 0.5, pos.z, 1, 0.2, 0.2, 0.2, 0.05);
+            }
+        }
     }
 
     @Override
@@ -138,8 +157,6 @@ public class MaximumQuietusItem extends SwordItem implements QAModWeapon {
     public void onUseTick(Level level, LivingEntity livingEntity, ItemStack stack, int count) {
         if (!(livingEntity instanceof Player player)) return;
         boolean isAwakened = hasCore(stack);
-        // getUseDuration(stack, player) は1.21でも有効ですが、メソッドシグネチャが getUseDuration(ItemStack, LivingEntity) です。
-        // 親クラスの実装に依存しますが、コード上はこのままで問題ありません。
         int usedTicks = this.getUseDuration(stack, player) - count;
         if (isAwakened) {
             return;
@@ -175,9 +192,6 @@ public class MaximumQuietusItem extends SwordItem implements QAModWeapon {
         if (player.isCrouching()) {
             player.addEffect(new MobEffectInstance(MobEffects.MOVEMENT_SLOWDOWN, 5, 255, false, false, false));
             player.addEffect(new MobEffectInstance(MobEffects.DAMAGE_RESISTANCE, 5, 2, false, false, false));
-        } else {
-            if (usedTicks > 5 && !isAwakened) {
-            }
         }
     }
 
@@ -262,7 +276,6 @@ public class MaximumQuietusItem extends SwordItem implements QAModWeapon {
     }
 
     private void toggleMode(ItemStack stack, Player player) {
-        // NBT操作をData Component操作に変更
         int currentMode = stack.getOrDefault(ModDataComponents.MODE, 0);
         int newMode = (currentMode == 0) ? 1 : 0;
         stack.set(ModDataComponents.MODE, newMode);
@@ -288,7 +301,6 @@ public class MaximumQuietusItem extends SwordItem implements QAModWeapon {
     }
 
     private QAElements getElementFromStack(ItemStack stack) {
-        // NBT操作をData Component操作に変更
         int mode = stack.getOrDefault(ModDataComponents.MODE, 0);
         return (mode == 0) ? QAElements.FIRE : QAElements.ICE;
     }
@@ -332,4 +344,5 @@ public class MaximumQuietusItem extends SwordItem implements QAModWeapon {
             addPressShiftHint(tooltip);
         }
     }
+
 }

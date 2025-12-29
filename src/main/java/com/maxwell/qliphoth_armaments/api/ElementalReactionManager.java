@@ -1,12 +1,12 @@
 package com.maxwell.qliphoth_armaments.api;
 
-import com.maxwell.qliphoth_armaments.api.capabilities.CapabilityHandler;
-import com.maxwell.qliphoth_armaments.api.capabilities.IElementalState;
 import com.finderfeed.fdbosses.content.entities.malkuth_boss.MalkuthAttackType;
 import com.finderfeed.fdbosses.content.entities.malkuth_boss.MalkuthEntity;
 import com.finderfeed.fdbosses.init.BossEffects;
 import com.finderfeed.fdbosses.init.BossEntities;
+import com.maxwell.qliphoth_armaments.api.capabilities.IElementalState;
 import com.maxwell.qliphoth_armaments.common.network.PacketSyncElementalState;
+import com.maxwell.qliphoth_armaments.init.ModAttachment;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.sounds.SoundEvents;
@@ -69,13 +69,12 @@ public class ElementalReactionManager {
         if (entity == null) {
             return null;
         }
-        IElementalState state = entity.getData(CapabilityHandler.ELEMENTAL_STATE.get());
+        IElementalState state = entity.getData(ModAttachment.ELEMENTAL_STATE.get());
         return state.getElement(entity.level().getGameTime());
     }
 
     public static void applyState(LivingEntity entity, QAElements type, int duration) {
-
-        IElementalState state = entity.getData(CapabilityHandler.ELEMENTAL_STATE.get());
+        IElementalState state = entity.getData(ModAttachment.ELEMENTAL_STATE.get());
         state.setElement(type, duration, entity.level().getGameTime());
         if (type == QAElements.FIRE) {
             entity.setRemainingFireTicks(20);
@@ -86,18 +85,14 @@ public class ElementalReactionManager {
         if (type == QAElements.LIGHTNING) {
             entity.addEffect(new MobEffectInstance(MobEffects.MOVEMENT_SLOWDOWN, 20, 0));
         }
-
-
         if (!entity.level().isClientSide()) {
             PacketSyncElementalState packet = new PacketSyncElementalState(entity.getId(), type, duration);
-
             PacketDistributor.sendToPlayersTrackingEntity(entity, packet);
         }
     }
 
     public static void clearState(LivingEntity entity) {
-
-        IElementalState state = entity.getData(CapabilityHandler.ELEMENTAL_STATE.get());
+        IElementalState state = entity.getData(ModAttachment.ELEMENTAL_STATE.get());
         state.clearElement();
         entity.clearFire();
         entity.removeEffect(MobEffects.MOVEMENT_SLOWDOWN);
@@ -106,7 +101,6 @@ public class ElementalReactionManager {
             PacketDistributor.sendToPlayersTrackingEntity(entity, packet);
         }
     }
-
 
     public static void triggerMeltdownEffect(LivingEntity target) {
         ServerLevel level = (ServerLevel) target.level();

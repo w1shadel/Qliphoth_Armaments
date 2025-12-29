@@ -3,7 +3,8 @@
   "package": "com.maxwell.qliphoth_armaments.mixin",
   "compatibilityLevel": "JAVA_17",
   "mixins": [
-    "BossEventsMixin"
+    "BossEventsMixin",
+    "EarthShatterEntityMixin"
   ],
   "injectors": {
     "defaultRequire": 1

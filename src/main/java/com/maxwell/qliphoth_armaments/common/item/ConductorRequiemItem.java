@@ -10,11 +10,11 @@ import com.finderfeed.fdlib.systems.shake.FDShakeData;
 import com.finderfeed.fdlib.systems.shake.PositionedScreenShakePacket;
 import com.finderfeed.fdlib.util.client.particles.ball_particle.BallParticleOptions;
 import com.maxwell.qliphoth_armaments.QA;
-import com.maxwell.qliphoth_armaments.api.capabilities.CapabilityHandler;
 import com.maxwell.qliphoth_armaments.common.entity.ChesedCoreMinionEntity;
 import com.maxwell.qliphoth_armaments.common.util.GradientTextUtil;
-import com.maxwell.qliphoth_armaments.common.util.MinionControlData;
+import com.maxwell.qliphoth_armaments.common.util.ModDataControl;
 import com.maxwell.qliphoth_armaments.config.QAConfig;
+import com.maxwell.qliphoth_armaments.init.ModAttachment;
 import com.maxwell.qliphoth_armaments.init.ModEntities;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.gui.screens.Screen;
@@ -45,9 +45,6 @@ import java.util.stream.Collectors;
 
 @EventBusSubscriber(modid = QA.MOD_ID, bus = EventBusSubscriber.Bus.GAME)
 public class ConductorRequiemItem extends SwordItem implements QAModWeapon {
-    // NBTタグ文字列は不要になりました
-    // private static final String TAG_TARGET_MINION_COUNT = "QAChesedTargetMinions";
-    // ...
 
     private static final int LONG_PRESS_THRESHOLD = 20;
 
@@ -56,8 +53,7 @@ public class ConductorRequiemItem extends SwordItem implements QAModWeapon {
     }
 
     private boolean hasCore(ItemStack stack) {
-        // DataComponent経由でコア判定（前回の修正と同様）
-        ItemCoreDataComponent component = stack.get(BossDataComponents.ITEM_CORE); // 名前はBossDataComponentsの実装に合わせてください
+        ItemCoreDataComponent component = stack.get(BossDataComponents.ITEM_CORE);
         if (component != null) {
             return component.getCoreType() == ItemCoreDataComponent.CoreType.LIGHTNING;
         }
@@ -94,8 +90,7 @@ public class ConductorRequiemItem extends SwordItem implements QAModWeapon {
                 localDesiredCount = 1;
             }
         }
-        // --- NBT操作をAttachment操作に変更 ---
-        MinionControlData data = player.getData(CapabilityHandler.MINION_CONTROL);
+        ModDataControl data = player.getData(ModAttachment.MINION_CONTROL);
         int currentMax = data.getTargetMinionCount();
         if (localDesiredCount > currentMax) {
             data.setTargetMinionCount(localDesiredCount);
@@ -103,13 +98,12 @@ public class ConductorRequiemItem extends SwordItem implements QAModWeapon {
         if (hasCore(stack)) {
             data.setAwakened(true);
         }
-        // リコイル処理
         if (player.getMainHandItem() == stack) {
             int timer = data.getRecoilTimer();
             if (timer > 0) {
                 player.addEffect(new MobEffectInstance(MobEffects.MOVEMENT_SLOWDOWN, 2, 2, false, false, false));
-                data.decrementRecoil(); // タイマーを減らす
-                timer = data.getRecoilTimer(); // 減らした後の値を取得
+                data.decrementRecoil();
+                timer = data.getRecoilTimer();
                 if (timer == 0) {
                     Vec3 look = player.getLookAngle();
                     player.push(-look.x * 1.5, 0.4, -look.z * 1.5);
@@ -117,7 +111,7 @@ public class ConductorRequiemItem extends SwordItem implements QAModWeapon {
                     PositionedScreenShakePacket.send((ServerLevel) level,
                             FDShakeData.builder().frequency(20.0F).amplitude(3.0F).inTime(0).stayTime(5).outTime(15).build(),
                             player.position(), 64.0D);
-                    // タイマー0になればそのまま(0のまま)でOK
+
                 }
             }
         }
@@ -127,12 +121,10 @@ public class ConductorRequiemItem extends SwordItem implements QAModWeapon {
     public static void onPlayerTick(PlayerTickEvent.Post event) {
         if (event.getEntity().level().isClientSide()) return;
         Player player = event.getEntity();
-        // Attachmentからデータを取得
-        MinionControlData data = player.getData(CapabilityHandler.MINION_CONTROL);
+        ModDataControl data = player.getData(ModAttachment.MINION_CONTROL);
         int targetCount = data.getTargetMinionCount();
         boolean isAwakened = data.isAwakened();
         manageMinions(player, (ServerLevel) player.level(), targetCount, isAwakened);
-        // ミニオン要求データのみリセット（リコイルタイマーは維持）
         data.resetMinionData();
     }
 
@@ -178,7 +170,6 @@ public class ConductorRequiemItem extends SwordItem implements QAModWeapon {
     }
 
     private static void spawnMinion(Player owner, ServerLevel level, int slot) {
-        // ModEntitiesの呼び出しに .get() を追加 (DeferredHolder対応)
         ChesedCoreMinionEntity minion = ModEntities.CHESED_CORE_MINION.get().create(level);
         if (minion != null) {
             minion.setOwner(owner);
@@ -191,7 +182,6 @@ public class ConductorRequiemItem extends SwordItem implements QAModWeapon {
     @Override
     public void onUseTick(Level level, LivingEntity livingEntity, ItemStack stack, int count) {
         if (livingEntity instanceof Player player) {
-            // シグネチャ修正: getUseDuration(stack, player)
             int duration = this.getUseDuration(stack, player) - count;
             player.addEffect(new MobEffectInstance(MobEffects.MOVEMENT_SLOWDOWN, 5, 2, false, false, false));
             if (!level.isClientSide()) {
@@ -269,8 +259,7 @@ public class ConductorRequiemItem extends SwordItem implements QAModWeapon {
             if (!level.isClientSide()) {
                 sendCommandToMinions(player, "FIRE_LASER");
                 player.getCooldowns().addCooldown(this, 200);
-                // リコイルタイマーを設定 (NBT -> Attachment)
-                MinionControlData data = player.getData(CapabilityHandler.MINION_CONTROL);
+                ModDataControl data = player.getData(ModAttachment.MINION_CONTROL);
                 data.setRecoilTimer(33);
                 level.playSound(null, player.getX(), player.getY(), player.getZ(),
                         BossSounds.CHESED_RAY_CHARGE.get(), SoundSource.PLAYERS, 1.0F, 1.0F);

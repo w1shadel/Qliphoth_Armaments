@@ -10,11 +10,8 @@ import net.neoforged.neoforge.registries.DeferredItem;
 import net.neoforged.neoforge.registries.DeferredRegister;
 
 public class ModItems {
-    // ForgeRegistries.ITEMS の代わりに DeferredRegister.createItems を使用します
-    // これにより、登録メソッドが DeferredItem<T> を返すようになります
+
     public static final DeferredRegister.Items ITEMS = DeferredRegister.createItems(QA.MOD_ID);
-    // Supplier<Item> ではなく DeferredItem<クラス名> を使うと、後でコード内で特定のメソッドにアクセスしやすくなります
-    // (DeferredItem は Supplier を継承しているので、そのまま get() できます)
 
     public static final DeferredItem<ConductorRequiemItem> CONDUCTORS_REQUIEM =
             ITEMS.register("conductors_requiem", () -> new ConductorRequiemItem(Tiers.DIAMOND, 2, -2.3f, new Item.Properties()));

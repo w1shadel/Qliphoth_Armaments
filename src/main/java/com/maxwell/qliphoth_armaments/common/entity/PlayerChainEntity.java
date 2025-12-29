@@ -11,16 +11,18 @@ import net.minecraft.network.syncher.EntityDataSerializers;
 import net.minecraft.network.syncher.SynchedEntityData;
 import net.minecraft.server.level.ServerEntity;
 import net.minecraft.server.level.ServerLevel;
-import net.minecraft.world.entity.Entity;
-import net.minecraft.world.entity.EntityType;
-import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.sounds.SoundEvents;
+import net.minecraft.world.damagesource.DamageSource;
+import net.minecraft.world.entity.*;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.Vec3;
 
+import java.util.ArrayList;
 import java.util.UUID;
 
-public class PlayerChainEntity extends Entity {
+public class PlayerChainEntity extends LivingEntity {
 
     private static final EntityDataAccessor<Integer> ATTACK_TYPE_ORDINAL = SynchedEntityData.defineId(PlayerChainEntity.class, EntityDataSerializers.INT);
     private static final EntityDataAccessor<Integer> OWNER_ID = SynchedEntityData.defineId(PlayerChainEntity.class, EntityDataSerializers.INT);
@@ -28,24 +30,26 @@ public class PlayerChainEntity extends Entity {
     private UUID targetUUID;
     private int pullTime;
     private int catchTime;
-    private Vec3 chainPullToPos;
-    private Vec3 startingPos;
 
-    public PlayerChainEntity(EntityType<?> type, Level level) {
+    // ★ 修正点 1: 変数を宣言時に必ず初期化し、nullになることを防ぎます。
+    private Vec3 chainPullToPos = Vec3.ZERO;
+    private Vec3 startingPos = Vec3.ZERO;
+
+    public PlayerChainEntity(EntityType<? extends LivingEntity> type, Level level) {
         super(type, level);
         this.noPhysics = true;
+        this.setNoGravity(true);
     }
 
     public static void summon(Level level, Player owner, QAElements type, LivingEntity target, int pullTime, int catchTime) {
         PlayerChainEntity chain = new PlayerChainEntity(ModEntities.PLAYER_CHANE.get(), level);
         chain.ownerUUID = owner.getUUID();
         chain.targetUUID = target.getUUID();
-        chain.chainPullToPos = owner.position().add(0, 1, 0);
-        chain.startingPos = target.position().add(0, target.getBbHeight() / 2.0, 0);
+        chain.chainPullToPos = owner.getEyePosition();
+        chain.startingPos = getTargetAttachmentPos(target);
         chain.pullTime = pullTime;
         chain.catchTime = catchTime;
         chain.setAttackType(type);
-        chain.ownerUUID = owner.getUUID();
         chain.setOwnerId(owner.getId());
         chain.setPos(chain.chainPullToPos);
         level.addFreshEntity(chain);
@@ -55,53 +59,88 @@ public class PlayerChainEntity extends Entity {
     public void tick() {
         super.tick();
         if (this.level().isClientSide) return;
+        // ★ 修正点 2: tick処理の最初に、変数がnullでないことを確認する安全装置を追加します。
+        if (startingPos == null || chainPullToPos == null) {
+            this.discard(); // データが異常ならエンティティを消去してクラッシュを防ぐ
+            return;
+        }
         Player owner = getOwner();
         LivingEntity target = getTarget();
-        if (owner == null || target == null || !target.isAlive()) {
+        if (owner == null || !owner.isAlive() || target == null || !target.isAlive() || this.tickCount > this.catchTime + this.pullTime + 20) {
+            this.ejectPassengers();
             this.discard();
             return;
         }
-        this.chainPullToPos = owner.position().add(0, 1, 0);
+        this.chainPullToPos = owner.getEyePosition();
         moveToTargetEndPoint();
     }
 
-    /**
-     * MalkuthChainEntityの移動ロジックを移植
-     */
     private void moveToTargetEndPoint() {
         if (this.tickCount > this.catchTime && this.tickCount - this.catchTime <= this.pullTime) {
             float p = (float) (this.tickCount - this.catchTime) / (float) this.pullTime;
-            Vec3 targetPoint = interpolateVectors(this.startingPos, this.chainPullToPos, p);
-            this.setPos(targetPoint);
+            Vec3 targetPoint = this.startingPos.lerp(this.chainPullToPos, p);
+            Vec3 deltaMovement = targetPoint.subtract(this.position());
+            this.setDeltaMovement(deltaMovement);
             LivingEntity target = this.getTarget();
-            if (target != null) {
-                if (!this.hasPassenger(target)) {
-                    target.startRiding(this, true);
-                }
+            if (target != null && !this.hasPassenger(target)) {
+                target.startRiding(this, true);
             }
         } else if (this.tickCount <= this.catchTime) {
             LivingEntity target = this.getTarget();
             if (target == null) return;
-            Vec3 targetAttachmentPos = target.position().add(0, target.getBbHeight() / 2.0, 0);
+            Vec3 targetAttachmentPos = getTargetAttachmentPos(target);
             float p = (float) this.tickCount / (float) this.catchTime;
-            Vec3 targetPoint = interpolateVectors(this.chainPullToPos, targetAttachmentPos, p);
-            this.setPos(targetPoint);
+            Vec3 targetPoint = this.chainPullToPos.lerp(targetAttachmentPos, p);
+            Vec3 deltaMovement = targetPoint.subtract(this.position());
+            this.setDeltaMovement(deltaMovement);
             if (this.tickCount == this.catchTime) {
                 this.startingPos = targetAttachmentPos;
                 this.setPos(targetAttachmentPos);
-                this.playSound(net.minecraft.sounds.SoundEvents.CHAIN_PLACE, 1.0F, 1.5F);
+                this.playSound(SoundEvents.CHAIN_PLACE, 1.0F, 1.5F);
             }
         } else {
+            this.setDeltaMovement(Vec3.ZERO);
             this.ejectPassengers();
             this.discard();
         }
     }
 
-    private Vec3 interpolateVectors(Vec3 start, Vec3 end, float delta) {
-        double d0 = start.x + (end.x - start.x) * (double) delta;
-        double d1 = start.y + (end.y - start.y) * (double) delta;
-        double d2 = start.z + (end.z - start.z) * (double) delta;
-        return new Vec3(d0, d1, d2);
+    @Override
+    public boolean shouldRiderSit() {
+        return false;
+    }
+
+    @Override
+    public Vec3 getPassengerRidingPosition(Entity entity) {
+        return this.position().add(0, -entity.getBbHeight() / 2.0, 0);
+    }
+
+    public static Vec3 getTargetAttachmentPos(LivingEntity target) {
+        return target.position().add(0, target.getBbHeight() / 2.0, 0);
+    }
+
+    @Override
+    public boolean hurt(DamageSource source, float amount) {
+        return false;
+    }
+
+    @Override
+    public Iterable<ItemStack> getArmorSlots() {
+        return new ArrayList<>();
+    }
+
+    @Override
+    public ItemStack getItemBySlot(EquipmentSlot slot) {
+        return ItemStack.EMPTY;
+    }
+
+    @Override
+    public void setItemSlot(EquipmentSlot slot, ItemStack stack) {
+    }
+
+    @Override
+    public HumanoidArm getMainArm() {
+        return HumanoidArm.RIGHT;
     }
 
     private Player getOwner() {
@@ -122,8 +161,43 @@ public class PlayerChainEntity extends Entity {
 
     @Override
     protected void defineSynchedData(SynchedEntityData.Builder builder) {
+        super.defineSynchedData(builder);
         builder.define(ATTACK_TYPE_ORDINAL, 0);
         builder.define(OWNER_ID, -1);
+    }
+
+    @Override
+    public void readAdditionalSaveData(CompoundTag tag) {
+        super.readAdditionalSaveData(tag);
+        if (tag.hasUUID("Owner")) this.ownerUUID = tag.getUUID("Owner");
+        if (tag.hasUUID("Target")) this.targetUUID = tag.getUUID("Target");
+        this.pullTime = tag.getInt("PullTime");
+        this.catchTime = tag.getInt("CatchTime");
+        if (tag.contains("PullToX")) {
+            this.chainPullToPos = new Vec3(tag.getDouble("PullToX"), tag.getDouble("PullToY"), tag.getDouble("PullToZ"));
+        }
+        if (tag.contains("StartX")) {
+            this.startingPos = new Vec3(tag.getDouble("StartX"), tag.getDouble("StartY"), tag.getDouble("StartZ"));
+        }
+    }
+
+    @Override
+    public void addAdditionalSaveData(CompoundTag tag) {
+        super.addAdditionalSaveData(tag);
+        if (ownerUUID != null) tag.putUUID("Owner", ownerUUID);
+        if (targetUUID != null) tag.putUUID("Target", targetUUID);
+        tag.putInt("PullTime", pullTime);
+        tag.putInt("CatchTime", catchTime);
+        if (chainPullToPos != null) {
+            tag.putDouble("PullToX", chainPullToPos.x);
+            tag.putDouble("PullToY", chainPullToPos.y);
+            tag.putDouble("PullToZ", chainPullToPos.z);
+        }
+        if (startingPos != null) {
+            tag.putDouble("StartX", startingPos.x);
+            tag.putDouble("StartY", startingPos.y);
+            tag.putDouble("StartZ", startingPos.z);
+        }
     }
 
     public void setAttackType(QAElements type) {
@@ -145,25 +219,6 @@ public class PlayerChainEntity extends Entity {
     public Player getOwnerClient() {
         Entity e = this.level().getEntity(getOwnerId());
         return e instanceof Player ? (Player) e : null;
-    }
-
-    @Override
-    protected void readAdditionalSaveData(CompoundTag tag) {
-        this.tickCount = tag.getInt("Age");
-        if (tag.hasUUID("Owner")) this.ownerUUID = tag.getUUID("Owner");
-        if (tag.hasUUID("Target")) this.targetUUID = tag.getUUID("Target");
-        this.pullTime = tag.getInt("PullTime");
-        this.catchTime = tag.getInt("CatchTime");
-
-    }
-
-    @Override
-    protected void addAdditionalSaveData(CompoundTag tag) {
-        tag.putInt("Age", this.tickCount);
-        if (ownerUUID != null) tag.putUUID("Owner", ownerUUID);
-        if (targetUUID != null) tag.putUUID("Target", targetUUID);
-        tag.putInt("PullTime", pullTime);
-        tag.putInt("CatchTime", catchTime);
     }
 
     @Override

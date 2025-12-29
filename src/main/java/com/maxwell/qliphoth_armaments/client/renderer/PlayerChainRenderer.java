@@ -80,9 +80,6 @@ public class PlayerChainRenderer extends EntityRenderer<PlayerChainEntity> {
                 .setNormal(0, 1, 0);
     }
 
-    /**
-     * プレイヤーの右手の位置を推定する
-     */
     private Vec3 getPlayerHandPos(Player player, float pticks) {
         double x = Mth.lerp(pticks, player.xo, player.getX());
         double y = Mth.lerp(pticks, player.yo, player.getY());
