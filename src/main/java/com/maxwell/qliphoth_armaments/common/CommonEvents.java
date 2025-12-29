@@ -1,8 +1,12 @@
 package com.maxwell.qliphoth_armaments.common;
 
+import com.finderfeed.fdbosses.content.entities.chesed_boss.ChesedEntity;
+import com.finderfeed.fdbosses.content.entities.malkuth_boss.MalkuthEntity;
+import com.finderfeed.fdbosses.content.entities.malkuth_boss.malkuth_warrior.MalkuthWarriorEntity;
 import com.maxwell.qliphoth_armaments.QA;
 import com.maxwell.qliphoth_armaments.common.entity.ChesedCoreMinionEntity;
 import com.maxwell.qliphoth_armaments.common.recipe.CauldronRecipe;
+import com.maxwell.qliphoth_armaments.init.ModItems;
 import com.maxwell.qliphoth_armaments.init.ModRecipes;
 import net.minecraft.core.BlockPos;
 import net.minecraft.sounds.SoundEvents;
@@ -16,6 +20,7 @@ import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.LayeredCauldronBlock;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraftforge.event.entity.living.LivingChangeTargetEvent;
+import net.minecraftforge.event.entity.living.LivingDeathEvent;
 import net.minecraftforge.event.entity.player.PlayerInteractEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
@@ -72,6 +77,36 @@ public class CommonEvents {
                 event.setCanceled(true);
                 event.getEntity().swing(event.getHand(), true);
             }
+        }
+    }
+
+    @SubscribeEvent
+    public static void onFDBossesDeath(LivingDeathEvent event) {
+        LivingEntity entity = event.getEntity();
+        Level level = entity.level();
+        if (!level.isClientSide() && entity instanceof MalkuthEntity) {
+            ItemStack diamondDrop = new ItemStack(ModItems.THE_SOVEREIGNTY.get(), 1);
+            double x = entity.getX();
+            double y = entity.getY();
+            double z = entity.getZ();
+            ItemEntity itemEntity = new ItemEntity(level, x, y, z, diamondDrop);
+            level.addFreshEntity(itemEntity);
+        }
+        if (!level.isClientSide() && entity instanceof ChesedEntity) {
+            ItemStack diamondDrop = new ItemStack(ModItems.SERAPHIM_RAILGUN.get(), 1);
+            double x = entity.getX();
+            double y = entity.getY();
+            double z = entity.getZ();
+            ItemEntity itemEntity = new ItemEntity(level, x, y, z, diamondDrop);
+            level.addFreshEntity(itemEntity);
+        }
+        if (!level.isClientSide() && entity instanceof MalkuthWarriorEntity) {
+            ItemStack diamondDrop = new ItemStack(ModItems.KNIGHT_SCRAP.get(), 1);
+            double x = entity.getX();
+            double y = entity.getY();
+            double z = entity.getZ();
+            ItemEntity itemEntity = new ItemEntity(level, x, y, z, diamondDrop);
+            level.addFreshEntity(itemEntity);
         }
     }
 }

@@ -61,9 +61,8 @@ public class TheSovereigntyItem extends SwordItem implements QAModWeapon {
         if (player.level().isClientSide()) return;
         ItemStack stack = player.getMainHandItem();
         if (stack.getItem() instanceof TheSovereigntyItem swordItem) {
-            // バニラの攻撃クールダウンが完了しているかチェック
             if (player.getAttackStrengthScale(0.5F) < 1.0F) {
-                event.setCanceled(true); // 攻撃インジケータが溜まっていなければキャンセル
+                event.setCanceled(true);
                 return;
             }
             swordItem.performShockwaveAttack(stack, player);
@@ -90,17 +89,27 @@ public class TheSovereigntyItem extends SwordItem implements QAModWeapon {
         MalkuthAttackType visualType = (currentElement == QAElements.FIRE) ? MalkuthAttackType.FIRE : MalkuthAttackType.ICE;
         double playerAttackDamage = player.getAttributeValue(Attributes.ATTACK_DAMAGE);
         float finalDamage = 15.0F + (float) playerAttackDamage;
+        Vec3 lookDir = player.getLookAngle().multiply(1.4, 0, 1.4).normalize();
+        Vec3 shockwaveOrigin = player.position().add(lookDir.scale(2.0));
         double range = 15.0;
         double angle = Math.PI / 2.5;
         double minDot = Math.cos(angle / 2.0);
-        AABB searchBox = player.getBoundingBox().inflate(range);
+        AABB searchBox = player.getBoundingBox().inflate(range + 2.0);
         List<LivingEntity> potentialTargets = level.getEntitiesOfClass(LivingEntity.class, searchBox);
         for (LivingEntity targetInRange : potentialTargets) {
-            if (targetInRange == player || player.isAlliedTo(targetInRange)) continue;
-            Vec3 toTarget = targetInRange.getEyePosition().subtract(player.getEyePosition());
-            if (toTarget.lengthSqr() > range * range) continue;
-            double dot = player.getLookAngle().dot(toTarget.normalize());
-            if (dot < minDot) continue;
+            if (targetInRange == player || player.isAlliedTo(targetInRange)) {
+                continue;
+            }
+            Vec3 toTarget = targetInRange.position().subtract(shockwaveOrigin);
+            if (toTarget.lengthSqr() > range * range) {
+                continue;
+            }
+            Vec3 toTargetHorizontal = toTarget.multiply(1, 0, 1).normalize();
+            if (toTargetHorizontal.lengthSqr() == 0) continue;
+            double dot = lookDir.dot(toTargetHorizontal);
+            if (dot < minDot) {
+                continue;
+            }
             targetInRange.getPersistentData().putBoolean(TAG_SHOCKWAVE_HIT, true);
             ElementalReactionManager.applyState(targetInRange, currentElement, 100);
             targetInRange.hurt(player.damageSources().playerAttack(player), finalDamage);
@@ -111,9 +120,13 @@ public class TheSovereigntyItem extends SwordItem implements QAModWeapon {
         Vec3 visualEnd = dir.scale(12.0);
         summonStableMalkuthEarthquake(level, visualType, startPos, visualEnd, 15, (float) Math.PI / 4.0F, 0.0F);
         float shakeAmp = 3.0F;
-        PositionedScreenShakePacket.send(level, FDShakeData.builder().amplitude(shakeAmp).outTime(10).build(), player.position(), 32.0D);
-        level.playSound(null, player.getX(), player.getY(), player.getZ(), (SoundEvent) BossSounds.MALKUTH_SWORD_EARTH_IMPACT.get(), SoundSource.PLAYERS, 1.5F, 0.8F);
+        PositionedScreenShakePacket.send(level,
+                FDShakeData.builder().amplitude(shakeAmp).outTime(10).build(),
+                player.position(), 32.0D);
+        level.playSound(null, player.getX(), player.getY(), player.getZ(),
+                (SoundEvent) BossSounds.MALKUTH_SWORD_EARTH_IMPACT.get(), SoundSource.PLAYERS, 1.5F, 0.8F);
         toggleMode(stack, player);
+        player.getCooldowns().addCooldown(this, 15);
     }
 
     @Override
@@ -180,7 +193,6 @@ public class TheSovereigntyItem extends SwordItem implements QAModWeapon {
         try {
             MalkuthEarthquake.summon(level, type, start, direction, lifetime, arcAngle, damage);
         } catch (Exception e) {
-            // fallback
         }
     }
 

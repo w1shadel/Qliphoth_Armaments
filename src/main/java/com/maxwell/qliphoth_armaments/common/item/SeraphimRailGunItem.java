@@ -58,7 +58,6 @@ public class SeraphimRailGunItem extends SwordItem implements QAModWeapon {
         super(pTier, pAttackDamageModifier, pAttackSpeedModifier, pProperties);
     }
 
-    // ★ 修正点 1: コンストラクタを正しい形式に修正
     @Override
     public Component getName(ItemStack stack) {
         String translatedName = Component.translatable(this.getDescriptionId(stack)).getString();
@@ -77,7 +76,6 @@ public class SeraphimRailGunItem extends SwordItem implements QAModWeapon {
         return InteractionResultHolder.consume(itemstack);
     }
 
-    // ★ 修正点 2: getUseDurationの引数を修正
     @Override
     public void onUseTick(Level level, LivingEntity livingEntity, ItemStack stack, int count) {
         if (!(livingEntity instanceof Player player)) return;
@@ -88,7 +86,6 @@ public class SeraphimRailGunItem extends SwordItem implements QAModWeapon {
         player.setDeltaMovement(0, Math.min(player.getDeltaMovement().y, 0), 0);
         if (!level.isClientSide) {
             ServerLevel serverLevel = (ServerLevel) level;
-            // コアのチェックを削除
             if (duration < MIN_CHARGE_TIME) {
                 if (duration % 2 == 0) {
                     spawnGatheringParticles(serverLevel, player, 1.5, 0.2F, 0.8F, 1.0F);
@@ -169,7 +166,6 @@ public class SeraphimRailGunItem extends SwordItem implements QAModWeapon {
         level.playSound(null, player.getX(), player.getY(), player.getZ(), SoundEvents.LIGHTNING_BOLT_THUNDER, SoundSource.PLAYERS, 0.5F, 2.0F);
         Vec3 startPos = player.position();
         Vec3 endPos = startPos.add(dashVec.scale(3.0));
-        // ★ 火力調整
         float damage = getScaledDamage(player, 4.0F);
         List<Entity> targets = FDHelpers.traceEntities(level, startPos, endPos, 3.0, e -> e != player && e instanceof LivingEntity);
         for (Entity e : targets) {
@@ -217,7 +213,6 @@ public class SeraphimRailGunItem extends SwordItem implements QAModWeapon {
                 .color(laserColor.getRed() / 255f, laserColor.getGreen() / 255f, laserColor.getBlue() / 255f)
                 .scalingOptions(0, 5, 20).size(1.0F).brightness(10).build();
         level.sendParticles(blast, startPos.x + lookDir.x, startPos.y + lookDir.y, startPos.z + lookDir.z, 1, 0, 0, 0, 0);
-        // ★ 火力調整
         float baseMult = isOvercharge ? 25.0F : 15.0F;
         double hitRadius = isOvercharge ? 18.0D : 12.0D;
         float damage = getScaledDamage(owner, baseMult);
@@ -265,7 +260,6 @@ public class SeraphimRailGunItem extends SwordItem implements QAModWeapon {
 
     private void summonStonesAfterRayAttack(ServerLevel level, int count, Vec3 direction, Vec3 pos, Player owner) {
         Vector3f v = (new Vector3f(0.0F, 1.0F, 0.0F)).cross((float) direction.x, (float) direction.y, (float) direction.z);
-        // ★ 火力調整
         float damage = getScaledDamage(owner, 1.5F);
         for (int i = 0; i < count; ++i) {
             BlockState state = level.random.nextFloat() > 0.5F ? Blocks.BLACKSTONE.defaultBlockState() : Blocks.SCULK.defaultBlockState();
@@ -306,7 +300,6 @@ public class SeraphimRailGunItem extends SwordItem implements QAModWeapon {
         return Math.max(1.0f, (float) (playerAttack * multiplier));
     }
 
-    // ★ 修正点 3: getUseDurationのシグネチャを修正
     @Override
     public int getUseDuration(ItemStack pStack) {
         return MAX_CHARGE_TIME;
@@ -320,7 +313,6 @@ public class SeraphimRailGunItem extends SwordItem implements QAModWeapon {
     @Override
     public void appendHoverText(ItemStack stack, @Nullable Level level, List<Component> tooltip, TooltipFlag flag) {
         super.appendHoverText(stack, level, tooltip, flag);
-        // ★ 修正点 5: コア関連の分岐を削除
         tooltip.add(Component.translatable("item.qliphoth_armaments.seraphim_railgun.lore_fuse").withStyle(ChatFormatting.GRAY, ChatFormatting.ITALIC));
         tooltip.add(Component.empty());
         tooltip.add(Component.translatable("item.qliphoth_armaments.seraphim_railgun.charge_short").withStyle(ChatFormatting.YELLOW));
