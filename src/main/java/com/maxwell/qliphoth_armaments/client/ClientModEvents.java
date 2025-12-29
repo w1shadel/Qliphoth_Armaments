@@ -1,11 +1,13 @@
 package com.maxwell.qliphoth_armaments.client;
 
-import com.maxwell.qliphoth_armaments.QA;
-import com.maxwell.qliphoth_armaments.init.ModEntities;
 import com.finderfeed.fdbosses.FDBosses;
 import com.finderfeed.fdbosses.init.BossModels;
 import com.finderfeed.fdlib.systems.bedrock.animations.animation_system.entity.renderer.FDEntityRenderLayerOptions;
 import com.finderfeed.fdlib.systems.bedrock.animations.animation_system.entity.renderer.FDEntityRendererBuilder;
+import com.maxwell.qliphoth_armaments.QA;
+import com.maxwell.qliphoth_armaments.client.renderer.MalkuthRampageSwordRenderer;
+import com.maxwell.qliphoth_armaments.client.renderer.PlayerChainRenderer;
+import com.maxwell.qliphoth_armaments.init.ModEntities;
 import net.minecraft.client.renderer.RenderType;
 import net.minecraft.util.Mth;
 import net.neoforged.api.distmarker.Dist;
@@ -47,7 +49,9 @@ public class ClientModEvents {
                         .build());
         event.registerEntityRenderer(
                 ModEntities.MALKUTH_PLAYER_LOGIC.get(),
-               com.maxwell.qliphoth_armaments.client.EmptyRenderer::new
+                com.maxwell.qliphoth_armaments.client.EmptyRenderer::new
         );
+        event.registerEntityRenderer(ModEntities.MALKUTH_RAMPAGE_SWORD.get(), MalkuthRampageSwordRenderer::new);
+        event.registerEntityRenderer(ModEntities.PLAYER_CHANE.get(), PlayerChainRenderer::new);
     }
 }

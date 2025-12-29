@@ -3,10 +3,7 @@ package com.maxwell.qliphoth_armaments;
 import com.maxwell.qliphoth_armaments.api.capabilities.CapabilityHandler;
 import com.maxwell.qliphoth_armaments.common.entity.ChesedCoreMinionEntity;
 import com.maxwell.qliphoth_armaments.config.QAConfig;
-import com.maxwell.qliphoth_armaments.init.ModCreativeTabs;
-import com.maxwell.qliphoth_armaments.init.ModEntities;
-import com.maxwell.qliphoth_armaments.init.ModItems;
-import com.maxwell.qliphoth_armaments.init.ModRecipes;
+import com.maxwell.qliphoth_armaments.init.*;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.fml.ModContainer;
 import net.neoforged.fml.common.Mod;
@@ -19,9 +16,10 @@ public class QA {
     public static final String MOD_ID = "qliphoth_armaments";
 
     public QA(IEventBus modEventBus, ModContainer modContainer) {
-        CapabilityHandler.ATTACHMENT_TYPES.register(modEventBus);
-        ModItems.register(modEventBus);
-        ModEntities.register(modEventBus);
+        CapabilityHandler.register(modEventBus);
+        ModItems.ITEMS.register(modEventBus);
+        ModDataComponents.DATA_COMPONENT_TYPES.register(modEventBus);
+        ModEntities.ENTITIES.register(modEventBus);
         ModRecipes.register(modEventBus);
         ModCreativeTabs.TABS.register(modEventBus);
         modEventBus.addListener(this::addEntityAttributes);

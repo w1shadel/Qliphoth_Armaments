@@ -133,7 +133,13 @@ dependencies {
     implementation "curse.maven:lionfish-api-1001614:6168249"
     implementation "curse.maven:mmmmmmmmmmmm-225738:7206981"
     implementation "curse.maven:selene-499980:7340883"
+    implementation "curse.maven:lendercataclysm-551586:6906997"
+    implementation "curse.maven:curios-309927:6529130"
+    implementation "curse.maven:lionfish-api-1001614:6168249"
+    implementation "curse.maven:better-combat-by-daedelus-639842:7348161"
     implementation "curse.maven:qliphoth-awakening-1271707:7128949"
+    implementation "curse.maven:cloth-config-348521:5729127"
+    implementation "curse.maven:playeranimator-658587:7389814"
     implementation "curse.maven:fdlib-1271749:7061918"
 }
 

@@ -2,7 +2,6 @@ package com.maxwell.qliphoth_armaments.common;
 
 import com.maxwell.qliphoth_armaments.QA;
 import com.maxwell.qliphoth_armaments.common.entity.ChesedCoreMinionEntity;
-import com.maxwell.qliphoth_armaments.common.item.ConductorRequiemItem;
 import com.maxwell.qliphoth_armaments.common.recipe.CauldronRecipe;
 import com.maxwell.qliphoth_armaments.init.ModRecipes;
 import net.minecraft.core.BlockPos;
@@ -24,18 +23,11 @@ import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.event.entity.living.LivingChangeTargetEvent;
 import net.neoforged.neoforge.event.entity.player.PlayerInteractEvent;
-import net.neoforged.neoforge.event.tick.PlayerTickEvent;
 
 import java.util.Optional;
 
 @EventBusSubscriber(modid = QA.MOD_ID, bus = EventBusSubscriber.Bus.GAME)
 public class CommonEvents {
-
-    @SubscribeEvent
-    public static void onPlayerTick(PlayerTickEvent.Post event) {
-        ConductorRequiemItem.onPlayerTick(event.getEntity());
-    }
-
     @SubscribeEvent
     public static void onLivingChangeTarget(LivingChangeTargetEvent event) {
         LivingEntity newTarget = event.getOriginalAboutToBeSetTarget();

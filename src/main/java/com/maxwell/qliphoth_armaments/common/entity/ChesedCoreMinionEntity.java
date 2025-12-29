@@ -1,9 +1,10 @@
 package com.maxwell.qliphoth_armaments.common.entity;
 
-import com.maxwell.qliphoth_armaments.api.ElementalReactionManager;
-import com.maxwell.qliphoth_armaments.api.QAElements;
+import com.finderfeed.fdbosses.BossUtil;
 import com.finderfeed.fdbosses.client.particles.chesed_attack_ray.ChesedRayOptions;
 import com.finderfeed.fdbosses.content.entities.chesed_boss.ChesedBossBuddy;
+import com.finderfeed.fdbosses.content.entities.chesed_boss.chesed_one_shot_vertical_ray.ChesedOneShotVerticalRayEntity;
+import com.finderfeed.fdbosses.content.entities.chesed_boss.falling_block.ChesedFallingBlock;
 import com.finderfeed.fdbosses.init.BossAnims;
 import com.finderfeed.fdbosses.init.BossDamageSources;
 import com.finderfeed.fdbosses.init.BossSounds;
@@ -12,11 +13,11 @@ import com.finderfeed.fdlib.FDLibCalls;
 import com.finderfeed.fdlib.systems.bedrock.animations.animation_system.AnimationTicker;
 import com.finderfeed.fdlib.systems.bedrock.animations.animation_system.entity.FDMob;
 import com.finderfeed.fdlib.systems.impact_frames.ImpactFrame;
-import com.finderfeed.fdlib.systems.shake.FDShakeData;
-import com.finderfeed.fdlib.systems.shake.PositionedScreenShakePacket;
 import com.finderfeed.fdlib.util.ProjectileMovementPath;
 import com.finderfeed.fdlib.util.client.particles.ball_particle.BallParticleOptions;
 import com.finderfeed.fdlib.util.client.particles.lightning_particle.LightningParticleOptions;
+import com.maxwell.qliphoth_armaments.api.ElementalReactionManager;
+import com.maxwell.qliphoth_armaments.api.QAElements;
 import net.minecraft.commands.arguments.EntityAnchorArgument;
 import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;
@@ -26,8 +27,6 @@ import net.minecraft.network.syncher.SynchedEntityData;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.damagesource.DamageSource;
-import net.minecraft.world.effect.MobEffectInstance;
-import net.minecraft.world.effect.MobEffects;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
@@ -35,11 +34,12 @@ import net.minecraft.world.entity.ai.attributes.AttributeSupplier;
 import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.monster.Monster;
 import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
+import org.joml.Vector3f;
 
 import javax.annotation.Nullable;
 import java.util.List;
@@ -254,32 +254,22 @@ public class ChesedCoreMinionEntity extends FDMob implements ChesedBossBuddy {
         Vec3 lookDir = owner.getLookAngle().normalize();
         double maxRange = 200.0D;
         Vec3 endPos = startPos.add(lookDir.scale(maxRange));
+        net.minecraft.world.phys.BlockHitResult rayTrace = this.level().clip(new net.minecraft.world.level.ClipContext(
+                startPos, endPos, net.minecraft.world.level.ClipContext.Block.COLLIDER, net.minecraft.world.level.ClipContext.Fluid.NONE, this));
+        Vec3 hitPos = rayTrace.getLocation();
         ChesedRayOptions options = ChesedRayOptions.builder()
                 .time(15, 25, 10).width(isAwakened() ? 2.5F : 1.5F)
                 .color(150, 255, 255).lightningColor(200, 255, 255).end(endPos).build();
         FDLibCalls.sendParticles((ServerLevel) this.level(), options, startPos, 128.0D);
         this.level().playSound(null, getX(), getY(), getZ(),
                 BossSounds.CHESED_FINAL_ATTACK_RAY.get(), SoundSource.NEUTRAL, 2.0F, 0.9F);
-        if (isAwakened()) {
-            for (int i = 1; i < 20; i++) {
-                double dist = i * 8.0;
-                if (dist > maxRange) break;
-                Vec3 checkPos = startPos.add(lookDir.scale(dist));
-                List<LivingEntity> stormTargets = this.level().getEntitiesOfClass(LivingEntity.class,
-                        new AABB(checkPos.add(-5, -5, -5), checkPos.add(5, 5, 5)),
-                        e -> !(e instanceof Player || e instanceof ChesedBossBuddy));
-                for (LivingEntity stormTarget : stormTargets) {
-                    float damage = getScaledDamage(owner, 10.0F);
-                    EntityType.LIGHTNING_BOLT.spawn((ServerLevel) this.level(), (ItemStack) null, (Player) null, stormTarget.blockPosition(), net.minecraft.world.entity.MobSpawnType.TRIGGERED, true, true);
-                    ElementalReactionManager.applyElementalDamage(stormTarget, BossDamageSources.chesedAttack(this), damage, QAElements.LIGHTNING);
-                }
-            }
-        }
         ImpactFrame baseFrame = new ImpactFrame(0.8F, 0.1F, 6, false);
         FDLibCalls.sendImpactFrames((ServerLevel) this.level(), this.position(), 128.0F, baseFrame);
         FDLibCalls.sendParticles((ServerLevel) this.level(),
                 BallParticleOptions.builder().size(50.0F).scalingOptions(2, 0, 5).color(100, 230, 255).build(),
                 endPos, 128.0D);
+        BossUtil.chesedRayExplosion((ServerLevel) this.level(), hitPos, lookDir.reverse(), 100.0F, 10, 0.75F);
+        summonStonesAfterRayAttack((ServerLevel) this.level(), 15, lookDir.reverse(), hitPos, owner);
         List<Entity> hitEntities = FDHelpers.traceEntities(this.level(), startPos, endPos, 3.0,
                 (entity) -> !(entity instanceof Player || entity instanceof ChesedBossBuddy));
         float damage = getScaledDamage(owner, 6.0F);
@@ -307,26 +297,32 @@ public class ChesedCoreMinionEntity extends FDMob implements ChesedBossBuddy {
         }
     }
 
+    private void summonStonesAfterRayAttack(ServerLevel level, int count, Vec3 direction, Vec3 pos, Player owner) {
+        Vector3f v = (new Vector3f(0.0F, 1.0F, 0.0F)).cross((float) direction.x, (float) direction.y, (float) direction.z);
+        float damage = getScaledDamage(owner, 10.0F);
+        for (int i = 0; i < count; ++i) {
+            BlockState state = level.random.nextFloat() > 0.5F ? Blocks.BLACKSTONE.defaultBlockState() : Blocks.SCULK.defaultBlockState();
+            Vector3f add = v.rotateAxis(((float) Math.PI * 2F) * level.random.nextFloat(), (float) direction.x, (float) direction.y, (float) direction.z, new Vector3f());
+            float rd = level.random.nextFloat() * 0.5F;
+            ChesedFallingBlock block = ChesedFallingBlock.summon(level, state, pos, damage);
+            block.setDeltaMovement(direction.add((double) (add.x * rd * 2.0F), (double) (add.y * rd), (double) (add.z * rd * 2.0F)).normalize().multiply(0.5, 2.4 - rd, 0.5));
+            block.setOwner(owner);
+        }
+    }
+
     private void fireCrossRay(LivingEntity target) {
         Player owner = getOwner();
         if (owner == null) return;
         Vec3 startPos = this.getEyePosition();
-        Vec3 endPos = target.getEyePosition();
+        Vec3 targetPos = target.position();
         ChesedRayOptions options = ChesedRayOptions.builder()
-                .time(2, 10, 3).width(0.2F).color(100, 255, 255).lightningColor(90, 180, 255).end(endPos).build();
+                .time(2, 5, 2).width(0.2F).color(100, 255, 255).lightningColor(90, 180, 255).end(targetPos).build();
         FDLibCalls.sendParticles((ServerLevel) this.level(), options, startPos, 64.0D);
-        PositionedScreenShakePacket.send((ServerLevel) this.level(),
-                FDShakeData.builder().amplitude(0.5F).outTime(5).build(),
-                endPos, 64.0D);
-        this.level().playSound(null, endPos.x, endPos.y, endPos.z, BossSounds.CHESED_LIGHTNING_RAY.get(), SoundSource.NEUTRAL, 0.8F, 1.2F);
-        float damage = getScaledDamage(owner, 1.2F);
-        ElementalReactionManager.applyElementalDamage(target, BossDamageSources.chesedAttack(this), damage, QAElements.LIGHTNING);
-        if (isAwakened()) {
-            target.addEffect(new MobEffectInstance(MobEffects.MOVEMENT_SLOWDOWN, 60, 4));
-            target.addEffect(new MobEffectInstance(MobEffects.WEAKNESS, 60, 1));
-            this.level().playSound(null, target.getX(), target.getY(), target.getZ(),
-                    BossSounds.ELECTRIC_HUM.get(), SoundSource.NEUTRAL, 1.0F, 2.0F);
-        }
+        float damage = getScaledDamage(owner, 1.5F);
+        ChesedOneShotVerticalRayEntity ray = ChesedOneShotVerticalRayEntity.summon(this.level(), targetPos, damage, 40.0F, 20);
+        ray.setDamageRadius(2.0F);
+        ray.softerSound = true;
+        this.level().playSound(null, targetPos.x, targetPos.y, targetPos.z, BossSounds.CHESED_LIGHTNING_RAY.get(), SoundSource.NEUTRAL, 0.8F, 1.2F);
     }
 
     private void tickCrossfireSequence() {
