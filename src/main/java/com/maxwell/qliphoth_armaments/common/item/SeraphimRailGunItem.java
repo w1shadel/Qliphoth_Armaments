@@ -3,9 +3,7 @@ package com.maxwell.qliphoth_armaments.common.item;
 import com.finderfeed.fdbosses.client.BossParticles;
 import com.finderfeed.fdbosses.client.particles.arc_lightning.ArcLightningOptions;
 import com.finderfeed.fdbosses.client.particles.chesed_attack_ray.ChesedRayOptions;
-import com.finderfeed.fdbosses.content.data_components.ItemCoreDataComponent;
 import com.finderfeed.fdbosses.content.entities.chesed_boss.falling_block.ChesedFallingBlock;
-import com.finderfeed.fdbosses.content.items.WeaponCoreItem;
 import com.finderfeed.fdbosses.init.BossDamageSources;
 import com.finderfeed.fdbosses.init.BossSounds;
 import com.finderfeed.fdlib.FDHelpers;
@@ -39,20 +37,16 @@ import net.minecraft.world.item.*;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
-import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
-import net.minecraftforge.fml.common.Mod;
 import org.joml.Vector3f;
 
 import javax.annotation.Nullable;
 import java.awt.*;
 import java.util.List;
 
-@Mod.EventBusSubscriber(modid = "qliphoth_armaments", bus = Mod.EventBusSubscriber.Bus.FORGE)
 public class SeraphimRailGunItem extends SwordItem implements QAModWeapon {
 
     private static final int MAX_CHARGE_TIME = 72000;
-
     private static final int MIN_CHARGE_TIME = 40;
     private static final int OVER_CHARGE_TIME = 100;
 
@@ -64,6 +58,7 @@ public class SeraphimRailGunItem extends SwordItem implements QAModWeapon {
         super(pTier, pAttackDamageModifier, pAttackSpeedModifier, pProperties);
     }
 
+    // ★ 修正点 1: コンストラクタを正しい形式に修正
     @Override
     public Component getName(ItemStack stack) {
         String translatedName = Component.translatable(this.getDescriptionId(stack)).getString();
@@ -82,6 +77,7 @@ public class SeraphimRailGunItem extends SwordItem implements QAModWeapon {
         return InteractionResultHolder.consume(itemstack);
     }
 
+    // ★ 修正点 2: getUseDurationの引数を修正
     @Override
     public void onUseTick(Level level, LivingEntity livingEntity, ItemStack stack, int count) {
         if (!(livingEntity instanceof Player player)) return;
@@ -92,7 +88,7 @@ public class SeraphimRailGunItem extends SwordItem implements QAModWeapon {
         player.setDeltaMovement(0, Math.min(player.getDeltaMovement().y, 0), 0);
         if (!level.isClientSide) {
             ServerLevel serverLevel = (ServerLevel) level;
-            boolean hasCore = hasCore(stack);
+            // コアのチェックを削除
             if (duration < MIN_CHARGE_TIME) {
                 if (duration % 2 == 0) {
                     spawnGatheringParticles(serverLevel, player, 1.5, 0.2F, 0.8F, 1.0F);
@@ -144,40 +140,37 @@ public class SeraphimRailGunItem extends SwordItem implements QAModWeapon {
         int chargeTime = this.getUseDuration(pStack) - pTimeLeft;
         if (chargeTime < MIN_CHARGE_TIME) {
             if (!pLevel.isClientSide) {
-                performDashAttack((ServerLevel) pLevel, player, pStack);
+                performDashAttack((ServerLevel) pLevel, player);
             }
             player.getCooldowns().addCooldown(this, DASH_COOLDOWN);
         } else if (chargeTime < OVER_CHARGE_TIME) {
             if (!pLevel.isClientSide) {
-                performLaserAttack((ServerLevel) pLevel, player, pStack, false);
+                performLaserAttack((ServerLevel) pLevel, player, false);
             }
             player.getCooldowns().addCooldown(this, RAILGUN_COOLDOWN);
             player.swing(InteractionHand.MAIN_HAND);
         } else {
             if (!pLevel.isClientSide) {
-                performLaserAttack((ServerLevel) pLevel, player, pStack, true);
+                performLaserAttack((ServerLevel) pLevel, player, true);
             }
             player.getCooldowns().addCooldown(this, OVERDRIVE_COOLDOWN);
             player.swing(InteractionHand.MAIN_HAND);
         }
     }
 
-    private void performDashAttack(ServerLevel level, Player player, ItemStack stack) {
-        boolean hasCore = hasCore(stack);
+    private void performDashAttack(ServerLevel level, Player player) {
         Vec3 look = player.getLookAngle();
-        double speed = hasCore ? 4.0 : 2.5;
+        double speed = 4.0;
         Vec3 dashVec = look.scale(speed);
         player.push(dashVec.x, 0.5, dashVec.z);
         player.hurtMarked = true;
         player.invulnerableTime = 20;
-        level.playSound(null, player.getX(), player.getY(), player.getZ(),
-                SoundEvents.TRIDENT_RIPTIDE_3, SoundSource.PLAYERS, 1.0F, 1.5F);
-        level.playSound(null, player.getX(), player.getY(), player.getZ(),
-                SoundEvents.LIGHTNING_BOLT_THUNDER, SoundSource.PLAYERS, 0.5F, 2.0F);
+        level.playSound(null, player.getX(), player.getY(), player.getZ(), SoundEvents.TRIDENT_RIPTIDE_3, SoundSource.PLAYERS, 1.0F, 1.5F);
+        level.playSound(null, player.getX(), player.getY(), player.getZ(), SoundEvents.LIGHTNING_BOLT_THUNDER, SoundSource.PLAYERS, 0.5F, 2.0F);
         Vec3 startPos = player.position();
         Vec3 endPos = startPos.add(dashVec.scale(3.0));
-        AABB pathBox = new AABB(startPos, endPos).inflate(3.0);
-        float damage = getScaledDamage(player, hasCore ? 100.0F : 50.0F);
+        // ★ 火力調整
+        float damage = getScaledDamage(player, 4.0F);
         List<Entity> targets = FDHelpers.traceEntities(level, startPos, endPos, 3.0, e -> e != player && e instanceof LivingEntity);
         for (Entity e : targets) {
             if (e instanceof LivingEntity target) {
@@ -194,47 +187,39 @@ public class SeraphimRailGunItem extends SwordItem implements QAModWeapon {
         }
     }
 
-    private void performLaserAttack(ServerLevel level, Player owner, ItemStack stack, boolean isOvercharge) {
-        boolean hasCore = hasCore(stack);
+    private void performLaserAttack(ServerLevel level, Player owner, boolean isOvercharge) {
         Vec3 startPos = owner.getEyePosition();
         Vec3 lookDir = owner.getLookAngle().normalize();
         double maxRange = isOvercharge ? 350.0D : 256.0D;
         Vec3 endPos = startPos.add(lookDir.scale(maxRange));
-        float width = isOvercharge ? (hasCore ? 35.0F : 25.0F) : (hasCore ? 25.0F : 15.0F);
+        float width = isOvercharge ? 35.0F : 25.0F;
         Color laserColor, lightningColor;
         if (isOvercharge) {
             laserColor = new Color(255, 100, 100);
             lightningColor = new Color(255, 200, 50);
         } else {
-            laserColor = hasCore ? new Color(255, 255, 100) : new Color(150, 255, 255);
-            lightningColor = hasCore ? new Color(255, 255, 220) : new Color(200, 255, 255);
+            laserColor = new Color(255, 255, 100);
+            lightningColor = new Color(255, 255, 220);
         }
         ChesedRayOptions options = ChesedRayOptions.builder()
-                .time(20, 30, 15)
-                .width(width)
-                .color(laserColor.getRed(), laserColor.getGreen(), laserColor.getBlue())
-                .lightningColor(lightningColor.getRed(), lightningColor.getGreen(), lightningColor.getBlue())
-                .end(endPos)
-                .build();
+                .time(20, 30, 15).width(width).color(laserColor.getRed(), laserColor.getGreen(), laserColor.getBlue())
+                .lightningColor(lightningColor.getRed(), lightningColor.getGreen(), lightningColor.getBlue()).end(endPos).build();
         FDLibCalls.sendParticles(level, options, startPos, 256.0D);
         float pitch = isOvercharge ? 0.6F : 0.7F;
-        level.playSound(null, owner.getX(), owner.getY(), owner.getZ(),
-                BossSounds.CHESED_FINAL_ATTACK_RAY.get(), SoundSource.PLAYERS, 3.0F, pitch);
+        level.playSound(null, owner.getX(), owner.getY(), owner.getZ(), BossSounds.CHESED_FINAL_ATTACK_RAY.get(), SoundSource.PLAYERS, 3.0F, pitch);
         ImpactFrame baseFrame = new ImpactFrame(isOvercharge ? 5.0F : 3.0F, 0.2F, 20, false);
         FDLibCalls.sendImpactFrames(level, owner.position(), 256.0F, baseFrame);
         float recoil = isOvercharge ? 3.5F : 2.0F;
-        PositionedScreenShakePacket.send(level,
-                FDShakeData.builder().frequency(40.0F).amplitude(recoil + 2.0F).inTime(0).stayTime(10).outTime(20).build(),
-                owner.position(), 64.0D);
+        PositionedScreenShakePacket.send(level, FDShakeData.builder().frequency(40.0F).amplitude(recoil + 2.0F).inTime(0).stayTime(10).outTime(20).build(), owner.position(), 64.0D);
         owner.push(-lookDir.x * recoil, 0.5, -lookDir.z * recoil);
         owner.hurtMarked = true;
         BallParticleOptions blast = BallParticleOptions.builder()
                 .color(laserColor.getRed() / 255f, laserColor.getGreen() / 255f, laserColor.getBlue() / 255f)
                 .scalingOptions(0, 5, 20).size(1.0F).brightness(10).build();
         level.sendParticles(blast, startPos.x + lookDir.x, startPos.y + lookDir.y, startPos.z + lookDir.z, 1, 0, 0, 0, 0);
-        double hitRadius = isOvercharge ? (hasCore ? 18.0D : 10.0D) : (hasCore ? 12.0D : 6.0D);
-        float baseMult = isOvercharge ? 800.0F : 500.0F;
-        if (!hasCore) baseMult /= 2.0F;
+        // ★ 火力調整
+        float baseMult = isOvercharge ? 25.0F : 15.0F;
+        double hitRadius = isOvercharge ? 18.0D : 12.0D;
         float damage = getScaledDamage(owner, baseMult);
         List<Entity> hitEntities = FDHelpers.traceEntities(level, startPos, endPos, hitRadius, (entity) -> !(entity instanceof Player));
         for (Entity entity : hitEntities) {
@@ -249,12 +234,11 @@ public class SeraphimRailGunItem extends SwordItem implements QAModWeapon {
                 level.sendParticles(lightning, living.getX(), living.getY() + living.getBbHeight() / 2, living.getZ(), 5, 0.5, 0.5, 0.5, 0.0);
             }
         }
-        net.minecraft.world.phys.BlockHitResult rayTrace = level.clip(new net.minecraft.world.level.ClipContext(
-                startPos, endPos, net.minecraft.world.level.ClipContext.Block.COLLIDER, net.minecraft.world.level.ClipContext.Fluid.NONE, owner));
+        net.minecraft.world.phys.BlockHitResult rayTrace = level.clip(new net.minecraft.world.level.ClipContext(startPos, endPos, net.minecraft.world.level.ClipContext.Block.COLLIDER, net.minecraft.world.level.ClipContext.Fluid.NONE, owner));
         Vec3 hitPos = rayTrace.getLocation();
         int stoneCount = isOvercharge ? 30 : 20;
         summonStonesAfterRayAttack(level, stoneCount, lookDir.reverse(), hitPos, owner);
-        int destructionRadius = isOvercharge ? (hasCore ? 7 : 5) : (hasCore ? 5 : 3);
+        int destructionRadius = isOvercharge ? 7 : 5;
         Vec3 stepVec = lookDir;
         int steps = (int) maxRange;
         Vec3 currentPos = startPos;
@@ -281,7 +265,8 @@ public class SeraphimRailGunItem extends SwordItem implements QAModWeapon {
 
     private void summonStonesAfterRayAttack(ServerLevel level, int count, Vec3 direction, Vec3 pos, Player owner) {
         Vector3f v = (new Vector3f(0.0F, 1.0F, 0.0F)).cross((float) direction.x, (float) direction.y, (float) direction.z);
-        float damage = getScaledDamage(owner, 10.0F);
+        // ★ 火力調整
+        float damage = getScaledDamage(owner, 1.5F);
         for (int i = 0; i < count; ++i) {
             BlockState state = level.random.nextFloat() > 0.5F ? Blocks.BLACKSTONE.defaultBlockState() : Blocks.SCULK.defaultBlockState();
             Vector3f add = v.rotateAxis(((float) Math.PI * 2F) * level.random.nextFloat(), (float) direction.x, (float) direction.y, (float) direction.z, new Vector3f());
@@ -306,10 +291,8 @@ public class SeraphimRailGunItem extends SwordItem implements QAModWeapon {
     }
 
     private void playChargeCompleteSound(Level level, Player player, float pitch) {
-        level.playSound(null, player.getX(), player.getY(), player.getZ(),
-                SoundEvents.RESPAWN_ANCHOR_SET_SPAWN, SoundSource.PLAYERS, 1.0F, pitch * 2.0F);
-        level.playSound(null, player.getX(), player.getY(), player.getZ(),
-                BossSounds.CHESED_RAY_CHARGE.get(), SoundSource.PLAYERS, 1.0F, pitch);
+        level.playSound(null, player.getX(), player.getY(), player.getZ(), SoundEvents.RESPAWN_ANCHOR_SET_SPAWN, SoundSource.PLAYERS, 1.0F, pitch * 2.0F);
+        level.playSound(null, player.getX(), player.getY(), player.getZ(), BossSounds.CHESED_RAY_CHARGE.get(), SoundSource.PLAYERS, 1.0F, pitch);
     }
 
     private void spawnBurstParticles(ServerLevel level, Player player, float r, float g, float b) {
@@ -323,13 +306,10 @@ public class SeraphimRailGunItem extends SwordItem implements QAModWeapon {
         return Math.max(1.0f, (float) (playerAttack * multiplier));
     }
 
+    // ★ 修正点 3: getUseDurationのシグネチャを修正
     @Override
     public int getUseDuration(ItemStack pStack) {
         return MAX_CHARGE_TIME;
-    }
-
-    private boolean hasCore(ItemStack stack) {
-        return WeaponCoreItem.getItemCore(stack) == ItemCoreDataComponent.CoreType.LIGHTNING;
     }
 
     @Override
@@ -340,22 +320,17 @@ public class SeraphimRailGunItem extends SwordItem implements QAModWeapon {
     @Override
     public void appendHoverText(ItemStack stack, @Nullable Level level, List<Component> tooltip, TooltipFlag flag) {
         super.appendHoverText(stack, level, tooltip, flag);
-        if (hasCore(stack)) {
-            tooltip.add(Component.translatable("item.qliphoth_armaments.seraphim_railgun.lore_fuse").withStyle(ChatFormatting.GRAY, ChatFormatting.ITALIC));
-        } else {
-            tooltip.add(Component.translatable("item.qliphoth_armaments.seraphim_railgun.lore").withStyle(ChatFormatting.GRAY, ChatFormatting.ITALIC));
-        }
+        // ★ 修正点 5: コア関連の分岐を削除
+        tooltip.add(Component.translatable("item.qliphoth_armaments.seraphim_railgun.lore_fuse").withStyle(ChatFormatting.GRAY, ChatFormatting.ITALIC));
         tooltip.add(Component.empty());
-        tooltip.add(Component.literal("Short Charge: Lightning Dash").withStyle(ChatFormatting.YELLOW));
-        tooltip.add(Component.literal("Full Charge: Seraphim Railgun").withStyle(ChatFormatting.AQUA));
-        tooltip.add(Component.literal("Over Charge: LIMIT BREAKER").withStyle(ChatFormatting.RED, ChatFormatting.BOLD));
+        tooltip.add(Component.translatable("item.qliphoth_armaments.seraphim_railgun.charge_short").withStyle(ChatFormatting.YELLOW));
+        tooltip.add(Component.translatable("item.qliphoth_armaments.seraphim_railgun.charge_full").withStyle(ChatFormatting.AQUA));
+        tooltip.add(Component.translatable("item.qliphoth_armaments.seraphim_railgun.charge_over").withStyle(ChatFormatting.RED, ChatFormatting.BOLD));
         if (Screen.hasShiftDown()) {
-            addRightClickSkill(tooltip,
-                    "item.qliphoth_armaments.seraphim_railgun.r_skill_1",
-                    "item.qliphoth_armaments.seraphim_railgun.r_skill_2");
-            if (!hasCore(stack)) {
-                addFuseHint(tooltip, "item.fdbosses.lightning_core");
-            }
+            tooltip.add(Component.empty());
+            addRightClickSkill(tooltip, "item.qliphoth_armaments.seraphim_railgun.r_skill_1", "item.qliphoth_armaments.seraphim_railgun.r_skill_2");
+            tooltip.add(Component.empty());
+            tooltip.add(Component.translatable("item.qliphoth_armaments.seraphim_railgun.r_skill_3").withStyle(ChatFormatting.DARK_RED, ChatFormatting.ITALIC));
         } else {
             addPressShiftHint(tooltip);
         }

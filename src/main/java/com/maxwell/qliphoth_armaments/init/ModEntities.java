@@ -1,7 +1,10 @@
 package com.maxwell.qliphoth_armaments.init;
 
 import com.maxwell.qliphoth_armaments.QA;
-import com.maxwell.qliphoth_armaments.common.entity.*;
+import com.maxwell.qliphoth_armaments.common.entity.ChesedCoreMinionEntity;
+import com.maxwell.qliphoth_armaments.common.entity.MalkuthPlayerAttackLogic;
+import com.maxwell.qliphoth_armaments.common.entity.MinionElectricSphereEntity;
+import com.maxwell.qliphoth_armaments.common.entity.PlayerChainEntity;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.MobCategory;
 import net.minecraftforge.registries.DeferredRegister;
@@ -33,9 +36,4 @@ public class ModEntities {
                     () -> EntityType.Builder.<PlayerChainEntity>of(PlayerChainEntity::new, MobCategory.MISC)
                             .sized(1.0F, 1.0F)
                             .build("malkuth_chane_player"));
-    public static final RegistryObject<EntityType<MalkuthRampageSwordEntity>> MALKUTH_RAMPAGE_SWORD =
-            ENTITIES.register("malkuth_rampage_sword",
-                    () -> EntityType.Builder.<MalkuthRampageSwordEntity>of(MalkuthRampageSwordEntity::new, MobCategory.MISC)
-                            .sized(1.0F, 1.0F)
-                            .build("malkuth_rampage_sword"));
 }
