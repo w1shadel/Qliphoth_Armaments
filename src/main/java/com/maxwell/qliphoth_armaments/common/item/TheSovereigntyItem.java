@@ -89,7 +89,7 @@ public class TheSovereigntyItem extends SwordItem implements QAModWeapon {
         MalkuthAttackType visualType = (currentElement == QAElements.FIRE) ? MalkuthAttackType.FIRE : MalkuthAttackType.ICE;
         double playerAttackDamage = player.getAttributeValue(Attributes.ATTACK_DAMAGE);
         float finalDamage = 15.0F + (float) playerAttackDamage;
-        Vec3 lookDir = player.getLookAngle().multiply(1.4, 0, 1.4).normalize();
+        Vec3 lookDir = player.getLookAngle().multiply(1.2, 0, 1.2).normalize();
         Vec3 shockwaveOrigin = player.position().add(lookDir.scale(2.0));
         double range = 15.0;
         double angle = Math.PI / 2.5;

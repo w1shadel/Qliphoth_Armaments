@@ -313,7 +313,7 @@ public class SeraphimRailGunItem extends SwordItem implements QAModWeapon {
     @Override
     public void appendHoverText(ItemStack stack, @Nullable Level level, List<Component> tooltip, TooltipFlag flag) {
         super.appendHoverText(stack, level, tooltip, flag);
-        tooltip.add(Component.translatable("item.qliphoth_armaments.seraphim_railgun.lore_fuse").withStyle(ChatFormatting.GRAY, ChatFormatting.ITALIC));
+        tooltip.add(Component.translatable("item.qliphoth_armaments.seraphim_railgun.lore").withStyle(ChatFormatting.GRAY, ChatFormatting.ITALIC));
         tooltip.add(Component.empty());
         tooltip.add(Component.translatable("item.qliphoth_armaments.seraphim_railgun.charge_short").withStyle(ChatFormatting.YELLOW));
         tooltip.add(Component.translatable("item.qliphoth_armaments.seraphim_railgun.charge_full").withStyle(ChatFormatting.AQUA));
