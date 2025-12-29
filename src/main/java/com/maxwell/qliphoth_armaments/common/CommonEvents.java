@@ -1,8 +1,5 @@
 package com.maxwell.qliphoth_armaments.common;
 
-import com.finderfeed.fdbosses.content.entities.chesed_boss.ChesedEntity;
-import com.finderfeed.fdbosses.content.entities.malkuth_boss.MalkuthEntity;
-import com.finderfeed.fdbosses.content.entities.malkuth_boss.malkuth_warrior.MalkuthWarriorEntity;
 import com.maxwell.qliphoth_armaments.QA;
 import com.maxwell.qliphoth_armaments.common.entity.ChesedCoreMinionEntity;
 import com.maxwell.qliphoth_armaments.common.recipe.CauldronRecipe;
@@ -23,10 +20,13 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.LayeredCauldronBlock;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.storage.loot.LootPool;
+import net.minecraft.world.level.storage.loot.entries.LootItem;
+import net.minecraft.world.level.storage.loot.predicates.LootItemRandomChanceCondition;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
+import net.neoforged.neoforge.event.LootTableLoadEvent;
 import net.neoforged.neoforge.event.entity.living.LivingChangeTargetEvent;
-import net.neoforged.neoforge.event.entity.living.LivingDeathEvent;
 import net.neoforged.neoforge.event.entity.player.PlayerInteractEvent;
 
 import java.util.Optional;
@@ -84,32 +84,35 @@ public class CommonEvents {
     }
 
     @SubscribeEvent
-    public static void onFDBossesDeath(LivingDeathEvent event) {
-        LivingEntity entity = event.getEntity();
-        Level level = entity.level();
-        if (!level.isClientSide() && entity instanceof MalkuthEntity) {
-            ItemStack diamondDrop = new ItemStack(ModItems.THE_SOVEREIGNTY.get(), 1);
-            double x = entity.getX();
-            double y = entity.getY();
-            double z = entity.getZ();
-            ItemEntity itemEntity = new ItemEntity(level, x, y, z, diamondDrop);
-            level.addFreshEntity(itemEntity);
+    public static void onLootTableLoad(LootTableLoadEvent event) {
+        // ターゲットのルートテーブルかIDで確認
+        if (event.getName().toString().equals("fdbosses:entities/malkuth")) {
+            LootPool pool = LootPool.lootPool()
+                    .add(LootItem.lootTableItem(ModItems.THE_SOVEREIGNTY.get()))
+                    .when(LootItemRandomChanceCondition.randomChance(1))
+                    .build();
+            event.getTable().addPool(pool);
         }
-        if (!level.isClientSide() && entity instanceof ChesedEntity) {
-            ItemStack diamondDrop = new ItemStack(ModItems.SERAPHIM_RAILGUN.get(), 1);
-            double x = entity.getX();
-            double y = entity.getY();
-            double z = entity.getZ();
-            ItemEntity itemEntity = new ItemEntity(level, x, y, z, diamondDrop);
-            level.addFreshEntity(itemEntity);
+        if (event.getName().toString().equals("fdbosses:entities/chesed")) {
+            LootPool pool = LootPool.lootPool()
+                    .add(LootItem.lootTableItem(ModItems.SERAPHIM_RAILGUN.get()))
+                    .when(LootItemRandomChanceCondition.randomChance(1))
+                    .build();
+            event.getTable().addPool(pool);
         }
-        if (!level.isClientSide() && entity instanceof MalkuthWarriorEntity) {
-            ItemStack diamondDrop = new ItemStack(ModItems.KNIGHT_SCRAP.get(), 1);
-            double x = entity.getX();
-            double y = entity.getY();
-            double z = entity.getZ();
-            ItemEntity itemEntity = new ItemEntity(level, x, y, z, diamondDrop);
-            level.addFreshEntity(itemEntity);
+        if (event.getName().toString().equals("fdbosses:entities/fire_malkuth_warrior")) {
+            LootPool pool = LootPool.lootPool()
+                    .add(LootItem.lootTableItem(ModItems.KNIGHT_SCRAP.get()))
+                    .when(LootItemRandomChanceCondition.randomChance(0.75f))
+                    .build();
+            event.getTable().addPool(pool);
+        }
+        if (event.getName().toString().equals("fdbosses:entities/ice_malkuth_warrior")) {
+            LootPool pool = LootPool.lootPool()
+                    .add(LootItem.lootTableItem(ModItems.KNIGHT_SCRAP.get()))
+                    .when(LootItemRandomChanceCondition.randomChance(0.75f))
+                    .build();
+            event.getTable().addPool(pool);
         }
     }
 }
