@@ -1,10 +1,8 @@
 package com.maxwell.qliphoth_armaments.common.item;
 
-import com.finderfeed.fdbosses.content.data_components.ItemCoreDataComponent;
 import com.finderfeed.fdbosses.content.entities.malkuth_boss.MalkuthAttackType;
 import com.finderfeed.fdbosses.content.entities.malkuth_boss.MalkuthEntity;
 import com.finderfeed.fdbosses.content.entities.malkuth_boss.malkuth_earthquake.MalkuthEarthquake;
-import com.finderfeed.fdbosses.init.BossDataComponents;
 import com.finderfeed.fdbosses.init.BossSounds;
 import com.finderfeed.fdlib.systems.shake.FDShakeData;
 import com.finderfeed.fdlib.systems.shake.PositionedScreenShakePacket;
@@ -12,7 +10,6 @@ import com.finderfeed.fdlib.util.client.particles.ball_particle.BallParticleOpti
 import com.maxwell.qliphoth_armaments.QA;
 import com.maxwell.qliphoth_armaments.api.ElementalReactionManager;
 import com.maxwell.qliphoth_armaments.api.QAElements;
-import com.maxwell.qliphoth_armaments.common.entity.MalkuthPlayerAttackLogic;
 import com.maxwell.qliphoth_armaments.common.entity.PlayerChainEntity;
 import com.maxwell.qliphoth_armaments.common.util.GradientTextUtil;
 import com.maxwell.qliphoth_armaments.init.ModDataComponents;
@@ -51,9 +48,6 @@ import java.util.List;
 @EventBusSubscriber(modid = QA.MOD_ID, bus = EventBusSubscriber.Bus.GAME)
 public class TheSovereigntyItem extends SwordItem implements QAModWeapon {
 
-    private static final float SHOCKWAVE_DAMAGE_MULTIPLIER = 2.0F;
-    private static final float REACTION_DAMAGE_MULTIPLIER = 4.0F;
-
     public TheSovereigntyItem(Tier tier, float attackDamage, float attackSpeed, Properties properties) {
         super(tier, properties.attributes(SwordItem.createAttributes(tier, (int) attackDamage, attackSpeed)));
     }
@@ -72,20 +66,11 @@ public class TheSovereigntyItem extends SwordItem implements QAModWeapon {
         return GradientTextUtil.createAnimatedGradient(translatedName, 200, fireRed, royalGold, iceBlue);
     }
 
-    private boolean hasCore(ItemStack stack) {
-        ItemCoreDataComponent component = stack.get(BossDataComponents.ITEM_CORE);
-        if (component != null) {
-            return component.getCoreType() == ItemCoreDataComponent.CoreType.FIRE_AND_ICE;
-        }
-        return false;
-    }
-
     @Override
     public void inventoryTick(ItemStack stack, Level level, Entity entity, int slotId, boolean isSelected) {
         if (!level.isClientSide && isSelected && entity instanceof Player player) {
             if (level.getGameTime() % 20 == 0) {
                 QAElements currentElement = getElementFromStack(stack);
-                // ランページモードの分岐を削除し、常に半径6.0Dに固定
                 double radius = 6.0D;
                 AABB area = player.getBoundingBox().inflate(radius, 2.0D, radius);
                 List<LivingEntity> targets = level.getEntitiesOfClass(LivingEntity.class, area,
@@ -114,7 +99,6 @@ public class TheSovereigntyItem extends SwordItem implements QAModWeapon {
         if (player.level().isClientSide()) return;
         ItemStack stack = player.getMainHandItem();
         if (stack.getItem() instanceof TheSovereigntyItem swordItem) {
-            // クールダウン中は攻撃イベント自体をキャンセル
             if (player.getCooldowns().isOnCooldown(swordItem)) {
                 event.setCanceled(true);
                 return;
@@ -122,9 +106,7 @@ public class TheSovereigntyItem extends SwordItem implements QAModWeapon {
             Entity targetEntity = event.getTarget();
             if (!(targetEntity instanceof LivingEntity)) return;
             LivingEntity target = (LivingEntity) targetEntity;
-            // 常に特殊攻撃を実行
-            swordItem.performNormalAttack(stack, target, player);
-            // バニラ攻撃をキャンセル
+            swordItem.performNormalAttack(stack, player);
             event.setCanceled(true);
         }
     }
@@ -133,8 +115,6 @@ public class TheSovereigntyItem extends SwordItem implements QAModWeapon {
     public InteractionResultHolder<ItemStack> use(Level level, Player player, InteractionHand hand) {
         ItemStack stack = player.getItemInHand(hand);
         if (!level.isClientSide) {
-            // Shiftキーの処理（ランページモード関連）を完全に削除
-            // 右クリックは常にチェーンプルを発動
             QAElements currentElement = getElementFromStack(stack);
             double reach = 20.0D;
             Vec3 eyePos = player.getEyePosition();
@@ -160,39 +140,43 @@ public class TheSovereigntyItem extends SwordItem implements QAModWeapon {
         return InteractionResultHolder.consume(stack);
     }
 
-    private void performNormalAttack(ItemStack stack, LivingEntity target, Player player) {
+    private void performNormalAttack(ItemStack stack, Player player) {
         ServerLevel level = (ServerLevel) player.level();
         QAElements currentElement = getElementFromStack(stack);
         MalkuthAttackType visualType = (currentElement == QAElements.FIRE) ? MalkuthAttackType.FIRE : MalkuthAttackType.ICE;
-        boolean triggerReaction = false;
-        if (currentElement == QAElements.FIRE) {
-            if (target.hasEffect(MobEffects.MOVEMENT_SLOWDOWN) || target.hasEffect(MobEffects.WEAKNESS))
-                triggerReaction = true;
-        } else {
-            if (target.isOnFire()) triggerReaction = true;
+        double playerAttackDamage = player.getAttributeValue(Attributes.ATTACK_DAMAGE);
+        float finalDamage = 15.0F + (float) playerAttackDamage;
+        double range = 15.0;
+        double angle = Math.PI / 2.5;
+        double minDot = Math.cos(angle / 2.0);
+        AABB searchBox = player.getBoundingBox().inflate(range);
+        List<LivingEntity> potentialTargets = level.getEntitiesOfClass(LivingEntity.class, searchBox);
+        for (LivingEntity targetInRange : potentialTargets) {
+            if (targetInRange == player || player.isAlliedTo(targetInRange)) {
+                continue;
+            }
+            Vec3 toTarget = targetInRange.getEyePosition().subtract(player.getEyePosition());
+            if (toTarget.lengthSqr() > range * range) {
+                continue;
+            }
+            double dot = player.getLookAngle().dot(toTarget.normalize());
+            if (dot < minDot) {
+                continue;
+            }
+            ElementalReactionManager.applyState(targetInRange, currentElement, 100);
+            targetInRange.hurt(player.damageSources().playerAttack(player), finalDamage);
         }
-        ElementalReactionManager.applyState(target, currentElement, 100);
         Vec3 dir = player.getLookAngle().multiply(1, 0, 1).normalize();
         if (dir.lengthSqr() < 0.01) dir = player.getForward().multiply(1, 0, 1).normalize();
         Vec3 startPos = player.position().add(dir.scale(1.5));
-        float damageMult = triggerReaction ? REACTION_DAMAGE_MULTIPLIER : SHOCKWAVE_DAMAGE_MULTIPLIER;
         Vec3 visualEnd = dir.scale(12.0);
         summonStableMalkuthEarthquake(level, visualType, startPos, visualEnd, 15, (float) Math.PI / 4.0F, 0.0F);
-        float damage = getScaledDamage(player, damageMult);
-        MalkuthPlayerAttackLogic.summon(level, player, startPos, dir, currentElement, damage, false);
-        float shakeAmp = triggerReaction ? 6.0F : 3.0F;
+        float shakeAmp = 3.0F;
         PositionedScreenShakePacket.send(level,
                 FDShakeData.builder().amplitude(shakeAmp).outTime(10).build(),
-                target.position(), 32.0D);
-        if (triggerReaction) {
-            level.playSound(null, player.getX(), player.getY(), player.getZ(),
-                    (SoundEvent) BossSounds.MALKUTH_VOLCANO_ERRUPTION.get(), SoundSource.PLAYERS, 1.5F, 1.2F);
-            target.clearFire();
-            target.removeEffect(MobEffects.MOVEMENT_SLOWDOWN);
-        } else {
-            level.playSound(null, player.getX(), player.getY(), player.getZ(),
-                    (SoundEvent) BossSounds.MALKUTH_SWORD_EARTH_IMPACT.get(), SoundSource.PLAYERS, 1.5F, 0.8F);
-        }
+                player.position(), 32.0D);
+        level.playSound(null, player.getX(), player.getY(), player.getZ(),
+                (SoundEvent) BossSounds.MALKUTH_SWORD_EARTH_IMPACT.get(), SoundSource.PLAYERS, 1.5F, 0.8F);
         toggleMode(stack, player);
         player.getCooldowns().addCooldown(this, 15);
     }
@@ -233,12 +217,6 @@ public class TheSovereigntyItem extends SwordItem implements QAModWeapon {
         return (mode == 0) ? QAElements.FIRE : QAElements.ICE;
     }
 
-    private float getScaledDamage(Player owner, float multiplier) {
-        double playerAttack = owner.getAttributeValue(Attributes.ATTACK_DAMAGE);
-        float finalDamage = (float) (playerAttack * multiplier);
-        return Math.max(1.0f, finalDamage);
-    }
-
     @Override
     public void appendHoverText(ItemStack stack, TooltipContext context, List<Component> tooltip, TooltipFlag flag) {
         super.appendHoverText(stack, context, tooltip, flag);
@@ -258,7 +236,6 @@ public class TheSovereigntyItem extends SwordItem implements QAModWeapon {
 
     @Override
     public int getBarColor(ItemStack stack) {
-        // ランページモードの分岐を削除
         QAElements element = getElementFromStack(stack);
         return (element == QAElements.FIRE) ? 0xFF4500 : 0x00FFFF;
     }
@@ -270,7 +247,6 @@ public class TheSovereigntyItem extends SwordItem implements QAModWeapon {
 
     @Override
     public int getBarWidth(ItemStack stack) {
-        // ランページモードの分岐を削除
         return 13;
     }
 }

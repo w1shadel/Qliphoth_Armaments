@@ -31,7 +31,6 @@ public class PlayerChainEntity extends LivingEntity {
     private int pullTime;
     private int catchTime;
 
-    // ★ 修正点 1: 変数を宣言時に必ず初期化し、nullになることを防ぎます。
     private Vec3 chainPullToPos = Vec3.ZERO;
     private Vec3 startingPos = Vec3.ZERO;
 
@@ -59,9 +58,8 @@ public class PlayerChainEntity extends LivingEntity {
     public void tick() {
         super.tick();
         if (this.level().isClientSide) return;
-        // ★ 修正点 2: tick処理の最初に、変数がnullでないことを確認する安全装置を追加します。
         if (startingPos == null || chainPullToPos == null) {
-            this.discard(); // データが異常ならエンティティを消去してクラッシュを防ぐ
+            this.discard();
             return;
         }
         Player owner = getOwner();

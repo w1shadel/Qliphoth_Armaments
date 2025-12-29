@@ -2,6 +2,7 @@ package com.maxwell.qliphoth_armaments.common;
 
 import com.finderfeed.fdbosses.content.entities.chesed_boss.ChesedEntity;
 import com.finderfeed.fdbosses.content.entities.malkuth_boss.MalkuthEntity;
+import com.finderfeed.fdbosses.content.entities.malkuth_boss.malkuth_warrior.MalkuthWarriorEntity;
 import com.maxwell.qliphoth_armaments.QA;
 import com.maxwell.qliphoth_armaments.common.entity.ChesedCoreMinionEntity;
 import com.maxwell.qliphoth_armaments.common.recipe.CauldronRecipe;
@@ -96,6 +97,14 @@ public class CommonEvents {
         }
         if (!level.isClientSide() && entity instanceof ChesedEntity) {
             ItemStack diamondDrop = new ItemStack(ModItems.SERAPHIM_RAILGUN.get(), 1);
+            double x = entity.getX();
+            double y = entity.getY();
+            double z = entity.getZ();
+            ItemEntity itemEntity = new ItemEntity(level, x, y, z, diamondDrop);
+            level.addFreshEntity(itemEntity);
+        }
+        if (!level.isClientSide() && entity instanceof MalkuthWarriorEntity) {
+            ItemStack diamondDrop = new ItemStack(ModItems.KNIGHT_SCRAP.get(), 1);
             double x = entity.getX();
             double y = entity.getY();
             double z = entity.getZ();

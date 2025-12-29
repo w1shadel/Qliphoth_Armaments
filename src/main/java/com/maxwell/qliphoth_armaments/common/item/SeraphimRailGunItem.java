@@ -158,7 +158,6 @@ public class SeraphimRailGunItem extends SwordItem implements QAModWeapon {
 
     private void performDashAttack(ServerLevel level, Player player, ItemStack stack) {
         Vec3 look = player.getLookAngle();
-        // コアの分岐を削除し、常に強力なバージョン（4.0）を使用
         double speed = 4.0;
         Vec3 dashVec = look.scale(speed);
         player.push(dashVec.x, 0.5, dashVec.z);
@@ -171,8 +170,7 @@ public class SeraphimRailGunItem extends SwordItem implements QAModWeapon {
         Vec3 startPos = player.position();
         Vec3 endPos = startPos.add(dashVec.scale(3.0));
         AABB pathBox = new AABB(startPos, endPos).inflate(3.0);
-        // コアの分岐を削除し、常に強力なバージョン（100.0F）を使用
-        float damage = getScaledDamage(player, 100.0F);
+        float damage = getScaledDamage(player, 4.0F);
         List<Entity> targets = FDHelpers.traceEntities(level, startPos, endPos, 3.0, e -> e != player && e instanceof LivingEntity);
         for (Entity e : targets) {
             if (e instanceof LivingEntity target) {
@@ -194,14 +192,12 @@ public class SeraphimRailGunItem extends SwordItem implements QAModWeapon {
         Vec3 lookDir = owner.getLookAngle().normalize();
         double maxRange = isOvercharge ? 350.0D : 256.0D;
         Vec3 endPos = startPos.add(lookDir.scale(maxRange));
-        // コアの分岐を削除し、常に強力なバージョンに固定
         float width = isOvercharge ? 35.0F : 25.0F;
         Color laserColor, lightningColor;
         if (isOvercharge) {
             laserColor = new Color(255, 100, 100);
             lightningColor = new Color(255, 200, 50);
         } else {
-            // コアの分岐を削除し、常に強力なバージョンに固定
             laserColor = new Color(255, 255, 100);
             lightningColor = new Color(255, 255, 220);
         }
@@ -228,9 +224,8 @@ public class SeraphimRailGunItem extends SwordItem implements QAModWeapon {
                 .color(laserColor.getRed() / 255f, laserColor.getGreen() / 255f, laserColor.getBlue() / 255f)
                 .scalingOptions(0, 5, 20).size(1.0F).brightness(10).build();
         level.sendParticles(blast, startPos.x + lookDir.x, startPos.y + lookDir.y, startPos.z + lookDir.z, 1, 0, 0, 0, 0);
-        // コアの分岐を削除し、常に強力なバージョンに固定
+        float baseMult = isOvercharge ? 25.0F : 15.0F;
         double hitRadius = isOvercharge ? 18.0D : 12.0D;
-        float baseMult = isOvercharge ? 800.0F : 500.0F;
         float damage = getScaledDamage(owner, baseMult);
         List<Entity> hitEntities = FDHelpers.traceEntities(level, startPos, endPos, hitRadius, (entity) -> !(entity instanceof Player));
         for (Entity entity : hitEntities) {
@@ -250,7 +245,6 @@ public class SeraphimRailGunItem extends SwordItem implements QAModWeapon {
         Vec3 hitPos = rayTrace.getLocation();
         int stoneCount = isOvercharge ? 30 : 20;
         summonStonesAfterRayAttack(level, stoneCount, lookDir.reverse(), hitPos, owner);
-        // コアの分岐を削除し、常に強力なバージョンに固定
         int destructionRadius = isOvercharge ? 7 : 5;
         Vec3 stepVec = lookDir;
         int steps = (int) maxRange;
@@ -278,7 +272,7 @@ public class SeraphimRailGunItem extends SwordItem implements QAModWeapon {
 
     private void summonStonesAfterRayAttack(ServerLevel level, int count, Vec3 direction, Vec3 pos, Player owner) {
         Vector3f v = (new Vector3f(0.0F, 1.0F, 0.0F)).cross((float) direction.x, (float) direction.y, (float) direction.z);
-        float damage = getScaledDamage(owner, 10.0F);
+        float damage = getScaledDamage(owner, 1.5F);
         for (int i = 0; i < count; ++i) {
             BlockState state = level.random.nextFloat() > 0.5F ? Blocks.BLACKSTONE.defaultBlockState() : Blocks.SCULK.defaultBlockState();
             Vector3f add = v.rotateAxis(((float) Math.PI * 2F) * level.random.nextFloat(), (float) direction.x, (float) direction.y, (float) direction.z, new Vector3f());
@@ -324,18 +318,6 @@ public class SeraphimRailGunItem extends SwordItem implements QAModWeapon {
     public int getUseDuration(ItemStack pStack, LivingEntity entity) {
         return MAX_CHARGE_TIME;
     }
-    // ★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★
-    // ★ 修正点: hasCoreメソッドを完全に削除します。 ★
-    // ★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★
-    /*
-    private boolean hasCore(ItemStack stack) {
-        ItemCoreDataComponent component = stack.get(BossDataComponents.ITEM_CORE);
-        if (component != null) {
-            return component.getCoreType() == ItemCoreDataComponent.CoreType.LIGHTNING;
-        }
-        return false;
-    }
-    */
 
     @Override
     public UseAnim getUseAnimation(ItemStack pStack) {
