@@ -85,7 +85,6 @@ public class CommonEvents {
 
     @SubscribeEvent
     public static void onLootTableLoad(LootTableLoadEvent event) {
-        // ターゲットのルートテーブルかIDで確認
         if (event.getName().toString().equals("fdbosses:entities/malkuth")) {
             LootPool pool = LootPool.lootPool()
                     .add(LootItem.lootTableItem(ModItems.THE_SOVEREIGNTY.get()))

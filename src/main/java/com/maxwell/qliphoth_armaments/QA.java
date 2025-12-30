@@ -16,6 +16,7 @@ public class QA {
 
     public QA(IEventBus modEventBus, ModContainer modContainer) {
         ModAttachment.register(modEventBus);
+        ModArmorMaterials.ARMOR_MATERIALS.register(modEventBus);
         ModItems.ITEMS.register(modEventBus);
         ModDataComponents.DATA_COMPONENT_TYPES.register(modEventBus);
         ModEntities.ENTITIES.register(modEventBus);

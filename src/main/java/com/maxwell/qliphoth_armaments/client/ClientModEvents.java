@@ -5,6 +5,7 @@ import com.finderfeed.fdbosses.init.BossModels;
 import com.finderfeed.fdlib.systems.bedrock.animations.animation_system.entity.renderer.FDEntityRenderLayerOptions;
 import com.finderfeed.fdlib.systems.bedrock.animations.animation_system.entity.renderer.FDEntityRendererBuilder;
 import com.maxwell.qliphoth_armaments.QA;
+import com.maxwell.qliphoth_armaments.client.model.GeburahModel;
 import com.maxwell.qliphoth_armaments.client.renderer.PlayerChainRenderer;
 import com.maxwell.qliphoth_armaments.init.ModEntities;
 import net.minecraft.client.renderer.RenderType;
@@ -16,6 +17,10 @@ import net.neoforged.neoforge.client.event.EntityRenderersEvent;
 
 @EventBusSubscriber(modid = QA.MOD_ID, bus = EventBusSubscriber.Bus.GAME, value = Dist.CLIENT)
 public class ClientModEvents {
+    @SubscribeEvent
+    public static void registerLayerDefinitions(EntityRenderersEvent.RegisterLayerDefinitions event) {
+        event.registerLayerDefinition(GeburahModel.LAYER_LOCATION, GeburahModel::createBodyLayer);
+    }
 
     @SubscribeEvent
     public static void onRegisterRenderers(EntityRenderersEvent.RegisterRenderers event) {

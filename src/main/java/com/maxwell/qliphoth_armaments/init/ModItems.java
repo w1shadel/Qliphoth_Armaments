@@ -4,6 +4,7 @@ import com.maxwell.qliphoth_armaments.QA;
 import com.maxwell.qliphoth_armaments.api.QAElements;
 import com.maxwell.qliphoth_armaments.common.item.*;
 import net.minecraft.network.chat.Component;
+import net.minecraft.world.item.ArmorItem;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.Tiers;
 import net.neoforged.neoforge.registries.DeferredItem;
@@ -42,5 +43,15 @@ public class ModItems {
 
     public static final DeferredItem<TheSovereigntyItem> THE_SOVEREIGNTY =
             ITEMS.register("the_sovereignty", () -> new TheSovereigntyItem(Tiers.NETHERITE, 10, -2.8f, new Item.Properties()));
+    public static final DeferredItem<GeburahArmorItem> GEBURAH_HELMET =
+            ITEMS.register("geburah_helmet", () -> new GeburahArmorItem(ModArmorMaterials.GEBURAH, ArmorItem.Type.HELMET, new Item.Properties()));
 
+    public static final DeferredItem<GeburahArmorItem> GEBURAH_CHESTPLATE =
+            ITEMS.register("geburah_chestplate", () -> new GeburahArmorItem(ModArmorMaterials.GEBURAH, ArmorItem.Type.CHESTPLATE, new Item.Properties()));
+
+    public static final DeferredItem<GeburahArmorItem> GEBURAH_LEGGINGS =
+            ITEMS.register("geburah_leggings", () -> new GeburahArmorItem(ModArmorMaterials.GEBURAH, ArmorItem.Type.LEGGINGS, new Item.Properties()));
+
+    public static final DeferredItem<GeburahArmorItem> GEBURAH_BOOTS =
+            ITEMS.register("geburah_boots", () -> new GeburahArmorItem(ModArmorMaterials.GEBURAH, ArmorItem.Type.BOOTS, new Item.Properties()));
 }
