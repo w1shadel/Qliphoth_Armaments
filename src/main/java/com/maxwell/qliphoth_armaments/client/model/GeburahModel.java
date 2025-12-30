@@ -93,25 +93,25 @@ public class GeburahModel<T extends LivingEntity> extends HumanoidModel<T> {
     }
 
     public void tickCape(T entity, float partialTick) {
-        // ★重要: 整数(tickCount) + 小数(partialTick) = 滑らかな時間(smoothTime)
         float smoothTime = entity.tickCount + partialTick;
-        // --- マントの物理演算 ---
-        // 移動速度や歩行位置も補完するとさらに滑らかになります
-        // (厳密な補完は複雑なので、今回は速度はそのまま、時間だけ滑らかにします)
         float speed = entity.walkAnimation.speed();
-        float walkPos = entity.walkAnimation.position(); // こだわるならここもinterpolateが必要ですが、まずは時間だけで十分効果があります
+        float walkPos = entity.walkAnimation.position();
         float waveSpeed = 0.05F + speed * 0.1F;
-        // ★ entity.tickCount の代わりに smoothTime を使う！
         float idleUpper = (float) Math.sin(smoothTime * waveSpeed) * 0.08F;
         float idleMiddle = (float) Math.sin(smoothTime * waveSpeed - 0.5F) * 0.1F;
         float idleUnder = (float) Math.sin(smoothTime * waveSpeed - 1.0F) * 0.15F;
-        float drag = speed * 1.0F;
         float flap = (float) Math.sin(walkPos * 0.6F) * speed * 0.2F;
-        this.capeUpper.xRot = 0.15F + idleUpper + drag + flap;
+        this.capeUpper.xRot = 0.15F + idleUpper + speed + flap;
         this.capeMiddle.xRot = idleMiddle + flap * 0.5F;
         this.capeUnder.xRot = idleUnder + flap * 0.5F;
-        // --- 十字架の回転 ---
-        // ★ここも smoothTime に変えることで、回転が超滑らかになります
         this.head_light.zRot = smoothTime * 0.2F;
+    }
+
+    @Override
+    public void renderToBuffer(com.mojang.blaze3d.vertex.PoseStack poseStack, com.mojang.blaze3d.vertex.VertexConsumer buffer, int packedLight, int packedOverlay, int color) {
+        ResourceLocation texture = ResourceLocation.fromNamespaceAndPath(QA.MOD_ID, "textures/models/armor/geburah_armor_layer_1.png");
+        com.mojang.blaze3d.vertex.VertexConsumer translucentBuffer = net.minecraft.client.Minecraft.getInstance()
+                .renderBuffers().bufferSource().getBuffer(net.minecraft.client.renderer.RenderType.entityTranslucent(texture));
+        super.renderToBuffer(poseStack, translucentBuffer, packedLight, packedOverlay, color);
     }
 }

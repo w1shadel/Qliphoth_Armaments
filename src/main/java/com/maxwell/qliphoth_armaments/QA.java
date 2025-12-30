@@ -15,7 +15,7 @@ public class QA {
     public static final String MOD_ID = "qliphoth_armaments";
 
     public QA(IEventBus modEventBus, ModContainer modContainer) {
-        ModAttachment.register(modEventBus);
+        ModAttachments.register(modEventBus);
         ModArmorMaterials.ARMOR_MATERIALS.register(modEventBus);
         ModItems.ITEMS.register(modEventBus);
         ModDataComponents.DATA_COMPONENT_TYPES.register(modEventBus);

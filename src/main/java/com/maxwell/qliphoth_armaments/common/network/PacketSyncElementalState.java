@@ -3,7 +3,7 @@ package com.maxwell.qliphoth_armaments.common.network;
 import com.maxwell.qliphoth_armaments.QA;
 import com.maxwell.qliphoth_armaments.api.QAElements;
 import com.maxwell.qliphoth_armaments.api.capabilities.IElementalState;
-import com.maxwell.qliphoth_armaments.init.ModAttachment;
+import com.maxwell.qliphoth_armaments.init.ModAttachments;
 import io.netty.buffer.ByteBuf;
 import net.minecraft.client.Minecraft;
 import net.minecraft.network.codec.ByteBufCodecs;
@@ -42,7 +42,7 @@ public record PacketSyncElementalState(int entityId, int elementOrdinal, int dur
                 if (level != null) {
                     Entity entity = level.getEntity(msg.entityId);
                     if (entity instanceof LivingEntity livingEntity) {
-                        IElementalState state = livingEntity.getData(ModAttachment.ELEMENTAL_STATE.get());
+                        IElementalState state = livingEntity.getData(ModAttachments.ELEMENTAL_STATE.get());
                         if (msg.elementOrdinal == -1) {
                             state.clearElement();
                         } else {

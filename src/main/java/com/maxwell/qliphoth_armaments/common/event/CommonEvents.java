@@ -1,4 +1,4 @@
-package com.maxwell.qliphoth_armaments.common;
+package com.maxwell.qliphoth_armaments.common.event;
 
 import com.maxwell.qliphoth_armaments.QA;
 import com.maxwell.qliphoth_armaments.common.entity.ChesedCoreMinionEntity;

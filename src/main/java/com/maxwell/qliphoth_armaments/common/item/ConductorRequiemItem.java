@@ -14,7 +14,7 @@ import com.maxwell.qliphoth_armaments.common.entity.ChesedCoreMinionEntity;
 import com.maxwell.qliphoth_armaments.common.util.GradientTextUtil;
 import com.maxwell.qliphoth_armaments.common.util.ModDataControl;
 import com.maxwell.qliphoth_armaments.config.QAConfig;
-import com.maxwell.qliphoth_armaments.init.ModAttachment;
+import com.maxwell.qliphoth_armaments.init.ModAttachments;
 import com.maxwell.qliphoth_armaments.init.ModEntities;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.gui.screens.Screen;
@@ -90,7 +90,7 @@ public class ConductorRequiemItem extends SwordItem implements QAModWeapon {
                 localDesiredCount = 1;
             }
         }
-        ModDataControl data = player.getData(ModAttachment.MINION_CONTROL);
+        ModDataControl data = player.getData(ModAttachments.MINION_CONTROL);
         int currentMax = data.getTargetMinionCount();
         if (localDesiredCount > currentMax) {
             data.setTargetMinionCount(localDesiredCount);
@@ -121,7 +121,7 @@ public class ConductorRequiemItem extends SwordItem implements QAModWeapon {
     public static void onPlayerTick(PlayerTickEvent.Post event) {
         if (event.getEntity().level().isClientSide()) return;
         Player player = event.getEntity();
-        ModDataControl data = player.getData(ModAttachment.MINION_CONTROL);
+        ModDataControl data = player.getData(ModAttachments.MINION_CONTROL);
         int targetCount = data.getTargetMinionCount();
         boolean isAwakened = data.isAwakened();
         manageMinions(player, (ServerLevel) player.level(), targetCount, isAwakened);
@@ -259,7 +259,7 @@ public class ConductorRequiemItem extends SwordItem implements QAModWeapon {
             if (!level.isClientSide()) {
                 sendCommandToMinions(player, "FIRE_LASER");
                 player.getCooldowns().addCooldown(this, 200);
-                ModDataControl data = player.getData(ModAttachment.MINION_CONTROL);
+                ModDataControl data = player.getData(ModAttachments.MINION_CONTROL);
                 data.setRecoilTimer(33);
                 level.playSound(null, player.getX(), player.getY(), player.getZ(),
                         BossSounds.CHESED_RAY_CHARGE.get(), SoundSource.PLAYERS, 1.0F, 1.0F);
