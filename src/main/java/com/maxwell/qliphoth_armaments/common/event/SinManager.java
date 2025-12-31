@@ -36,10 +36,20 @@ public class SinManager {
     private static final int SWITCH_INTERVAL = 300;
     private static final double EFFECT_RADIUS = 16.0;
 
+    // ★追加: 罪を犯した後の無敵時間 (tick)
+    // 本家では40tick (2秒) 程度設定されることが多いです
+    private static final int DEFAULT_SIN_COOLDOWN = 40;
+
     @SubscribeEvent
     public static void onPlayerTick(PlayerTickEvent.Post event) {
         if (event.getEntity() instanceof ServerPlayer player) {
+            // ★追加: クールダウンの減算処理 (PlayerSinsHandler.tickPlayerSins を参考)
+            int currentCooldown = player.getData(ModAttachments.SIN_COOLDOWN);
+            if (currentCooldown > 0) {
+                player.setData(ModAttachments.SIN_COOLDOWN, currentCooldown - 1);
+            }
             if (!hasFullArmor(player)) return;
+            // ... 既存のモード切替ロジック ...
             int timer = player.getData(ModAttachments.SIN_TIMER);
             timer++;
             if (timer >= SWITCH_INTERVAL) {
@@ -60,6 +70,7 @@ public class SinManager {
         }
     }
 
+    // ... onDamage, onItemUseStart はそのまま ...
     @SubscribeEvent
     public static void onDamage(LivingDamageEvent.Post event) {
         LivingEntity attacker = event.getSource().getEntity() instanceof LivingEntity ? (LivingEntity) event.getSource().getEntity() : null;
@@ -89,19 +100,20 @@ public class SinManager {
     }
 
     private static void checkAndApplySin(ServerPlayer arbiter, LivingEntity target, int mode) {
+        // ... 判定ロジックはそのまま ...
         boolean sinned = false;
         if (mode == MODE_SILENCE) {
             double motion = target.getDeltaMovement().horizontalDistanceSqr();
             if (motion > 0.002) {
                 sinned = true;
-                if (target instanceof Player p) {
+                if (target instanceof Player p && p.tickCount % 20 == 0) { // メッセージスパム防止
                     p.displayClientMessage(Component.literal("§b[静寂] 動いてはならない...").withStyle(ChatFormatting.AQUA), true);
                 }
             }
         } else if (mode == MODE_PRIDE) {
             if (!target.onGround() && !target.isInWater() && !target.isFallFlying()) {
                 sinned = true;
-                if (target instanceof Player p) {
+                if (target instanceof Player p && p.tickCount % 20 == 0) {
                     p.displayClientMessage(Component.literal("§e[傲慢] 地に伏せよ...").withStyle(ChatFormatting.YELLOW), true);
                 }
             }
@@ -112,43 +124,57 @@ public class SinManager {
     }
 
     private static void addSinToEntity(ServerPlayer arbiter, LivingEntity target, int amount) {
+        // ★追加: クールダウンチェック (PlayerSinsHandler.sin を参考)
+        // ターゲットがプレイヤーの場合、アタッチメントのクールダウンを確認
+        if (target instanceof Player) {
+            int cooldown = target.getData(ModAttachments.SIN_COOLDOWN);
+            if (cooldown > 0) {
+                return; // クールダウン中なら何もしない
+            }
+        }
         int maxSin = 6;
         if (target instanceof Player player && hasFullArmor(player)) {
             maxSin = 12;
         }
         int currentSin = target.getData(ModAttachments.SIN);
-        int newSin = Math.min(currentSin + amount, maxSin);
-        if (currentSin != newSin) {
-            target.setData(ModAttachments.SIN, newSin);
-            if (target.level() instanceof ServerLevel serverLevel) {
-                try {
-                    if (BossSounds.GEBURAH_SIN != null) {
-                        serverLevel.playSound(null, target.blockPosition(), BossSounds.GEBURAH_SIN.get(), SoundSource.HOSTILE, 0.5f, 1.5f);
-                    }
-                } catch (NoClassDefFoundError | Exception e) {
-                    serverLevel.playSound(null, target.blockPosition(), SoundEvents.SCULK_CATALYST_BLOOM, SoundSource.HOSTILE, 0.5f, 2.0f);
+        int newSin = currentSin + amount; // ここではキャップせず、判定後に処理
+        // 罪が増える処理
+        target.setData(ModAttachments.SIN, Math.min(newSin, maxSin));
+        if (target instanceof Player) {
+            target.setData(ModAttachments.SIN_COOLDOWN, DEFAULT_SIN_COOLDOWN);
+        }
+        if (target.level() instanceof ServerLevel serverLevel) {
+            try {
+                if (BossSounds.GEBURAH_SIN != null) {
+                    serverLevel.playSound(null, target.blockPosition(), BossSounds.GEBURAH_SIN.get(), SoundSource.HOSTILE, 0.5f, 1.5f);
                 }
-                serverLevel.sendParticles(ParticleTypes.SCULK_SOUL,
-                        target.getX(), target.getY() + 1.0, target.getZ(),
-                        5, 0.2, 0.2, 0.2, 0.05);
+            } catch (NoClassDefFoundError | Exception e) {
+                serverLevel.playSound(null, target.blockPosition(), SoundEvents.SCULK_CATALYST_BLOOM, SoundSource.HOSTILE, 0.5f, 2.0f);
             }
-            if (newSin >= maxSin) {
-                executeJudgment(arbiter, target);
-            }
+            serverLevel.sendParticles(ParticleTypes.SCULK_SOUL,
+                    target.getX(), target.getY() + 1.0, target.getZ(),
+                    5, 0.2, 0.2, 0.2, 0.05);
+        }
+        // 即死判定 (PlayerSinsHandler.sin 内の hurt(..., Float.MAX_VALUE) を参考)
+        if (newSin >= maxSin) {
+            executeJudgment(arbiter, target);
         }
     }
 
     private static void executeJudgment(ServerPlayer arbiter, LivingEntity target) {
         target.setData(ModAttachments.SIN, 0);
+        // 即死後はクールダウンもリセットしても良い
+        if (target instanceof Player) {
+            target.setData(ModAttachments.SIN_COOLDOWN, 0);
+        }
         if (target.level() instanceof ServerLevel serverLevel) {
             serverLevel.playSound(null, target.blockPosition(), SoundEvents.WARDEN_SONIC_BOOM, SoundSource.HOSTILE, 1.0f, 1.0f);
             serverLevel.sendParticles(ParticleTypes.EXPLOSION_EMITTER,
                     target.getX(), target.getY(), target.getZ(),
                     1, 0, 0, 0, 0);
         }
-        float damage = target.getMaxHealth() * 0.5f;
-        if (damage < 20.0f) damage = 20.0f;
-        target.hurt(target.damageSources().magic(), damage);
+        // ★変更: 本家に倣って確定即死ダメージに変更
+        target.hurt(target.damageSources().magic(), Float.MAX_VALUE);
         if (target instanceof Player p) {
             p.sendSystemMessage(Component.literal("§4§l≪ 断罪 ≫ 汝の罪は満ちた。").withStyle(ChatFormatting.DARK_RED));
         } else {
@@ -156,6 +182,7 @@ public class SinManager {
         }
     }
 
+    // ... findNearbyArbiter, switchMode, hasFullArmor はそのまま ...
     private static ServerPlayer findNearbyArbiter(LivingEntity entity) {
         AABB searchArea = entity.getBoundingBox().inflate(EFFECT_RADIUS);
         List<ServerPlayer> nearbyPlayers = entity.level().getEntitiesOfClass(ServerPlayer.class, searchArea);

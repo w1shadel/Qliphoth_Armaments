@@ -5,15 +5,19 @@ import com.finderfeed.fdbosses.init.BossModels;
 import com.finderfeed.fdlib.systems.bedrock.animations.animation_system.entity.renderer.FDEntityRenderLayerOptions;
 import com.finderfeed.fdlib.systems.bedrock.animations.animation_system.entity.renderer.FDEntityRendererBuilder;
 import com.maxwell.qliphoth_armaments.QA;
+import com.maxwell.qliphoth_armaments.client.gui.PlayerSinsOverlay;
 import com.maxwell.qliphoth_armaments.client.model.GeburahModel;
 import com.maxwell.qliphoth_armaments.client.renderer.PlayerChainRenderer;
 import com.maxwell.qliphoth_armaments.init.ModEntities;
 import net.minecraft.client.renderer.RenderType;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.Mth;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.client.event.EntityRenderersEvent;
+import net.neoforged.neoforge.client.event.RegisterGuiLayersEvent;
+import net.neoforged.neoforge.client.gui.VanillaGuiLayers;
 
 @EventBusSubscriber(modid = QA.MOD_ID, bus = EventBusSubscriber.Bus.GAME, value = Dist.CLIENT)
 public class ClientModEvents {
@@ -57,4 +61,10 @@ public class ClientModEvents {
         );
         event.registerEntityRenderer(ModEntities.PLAYER_CHANE.get(), PlayerChainRenderer::new);
     }
+
+    @SubscribeEvent
+    public static void registerGuiLayers(RegisterGuiLayersEvent event) {
+        event.registerAbove(VanillaGuiLayers.HOTBAR, ResourceLocation.fromNamespaceAndPath(QA.MOD_ID, "sins_overlay"), new PlayerSinsOverlay());
+    }
+
 }
