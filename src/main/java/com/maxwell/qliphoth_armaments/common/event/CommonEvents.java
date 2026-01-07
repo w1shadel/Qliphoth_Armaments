@@ -113,5 +113,12 @@ public class CommonEvents {
                     .build();
             event.getTable().addPool(pool);
         }
+        if (event.getName().toString().equals("fdbosses:entities/geburah")) {
+            LootPool pool = LootPool.lootPool()
+                    .add(LootItem.lootTableItem(ModItems.GOLDEN_CORE.get()))
+                    .when(LootItemRandomChanceCondition.randomChance(1))
+                    .build();
+            event.getTable().addPool(pool);
+        }
     }
 }

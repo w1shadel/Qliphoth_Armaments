@@ -18,5 +18,10 @@ public class PacketHandler {
                 PacketSyncElementalState.STREAM_CODEC,
                 PacketSyncElementalState::handle
         );
+        registrar.playToClient(
+                PacketSyncMobSin.TYPE,
+                PacketSyncMobSin.STREAM_CODEC,
+                PacketSyncMobSin::handle
+        );
     }
 }

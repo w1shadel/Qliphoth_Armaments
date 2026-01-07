@@ -5,11 +5,15 @@ import com.finderfeed.fdbosses.init.BossModels;
 import com.finderfeed.fdlib.systems.bedrock.animations.animation_system.entity.renderer.FDEntityRenderLayerOptions;
 import com.finderfeed.fdlib.systems.bedrock.animations.animation_system.entity.renderer.FDEntityRendererBuilder;
 import com.maxwell.qliphoth_armaments.QA;
+import com.maxwell.qliphoth_armaments.client.gui.CurrentSinOverlay;
 import com.maxwell.qliphoth_armaments.client.gui.PlayerSinsOverlay;
 import com.maxwell.qliphoth_armaments.client.model.GeburahModel;
 import com.maxwell.qliphoth_armaments.client.renderer.PlayerChainRenderer;
+import com.maxwell.qliphoth_armaments.client.renderer.layers.PlayerHaloLayer;
 import com.maxwell.qliphoth_armaments.init.ModEntities;
 import net.minecraft.client.renderer.RenderType;
+import net.minecraft.client.renderer.entity.player.PlayerRenderer;
+import net.minecraft.client.resources.PlayerSkin;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.Mth;
 import net.neoforged.api.distmarker.Dist;
@@ -65,6 +69,18 @@ public class ClientModEvents {
     @SubscribeEvent
     public static void registerGuiLayers(RegisterGuiLayersEvent event) {
         event.registerAbove(VanillaGuiLayers.HOTBAR, ResourceLocation.fromNamespaceAndPath(QA.MOD_ID, "sins_overlay"), new PlayerSinsOverlay());
+        event.registerAbove(VanillaGuiLayers.BOSS_OVERLAY, ResourceLocation.fromNamespaceAndPath(QA.MOD_ID, "current_sin_overlay"), new CurrentSinOverlay());
     }
 
+    @SubscribeEvent
+    public static void addEntityLayers(EntityRenderersEvent.AddLayers event) {
+        PlayerRenderer defaultRenderer = event.getSkin(PlayerSkin.Model.WIDE);
+        if (defaultRenderer != null) {
+            defaultRenderer.addLayer(new PlayerHaloLayer(defaultRenderer));
+        }
+        PlayerRenderer slimRenderer = event.getSkin(PlayerSkin.Model.SLIM);
+        if (slimRenderer != null) {
+            slimRenderer.addLayer(new PlayerHaloLayer(slimRenderer));
+        }
+    }
 }

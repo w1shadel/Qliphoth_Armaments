@@ -7,7 +7,7 @@ import java.util.List;
 
 public interface QAModWeapon {
 
-    private void addSkillComponent(List<Component> tooltip, String titleKey, ChatFormatting titleFormatting, String... descriptionKeys) {
+    default void addSkillComponent(List<Component> tooltip, String titleKey, ChatFormatting titleFormatting, String... descriptionKeys) {
         tooltip.add(Component.translatable(titleKey).withStyle(titleFormatting));
         for (String key : descriptionKeys) {
             tooltip.add(Component.translatable(key).withStyle(ChatFormatting.GRAY));

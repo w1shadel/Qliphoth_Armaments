@@ -24,13 +24,19 @@ public class ModAttachments {
                     () -> AttachmentType.<IElementalState>builder(ElementalState::new)
                             .serialize(new ElementalState.Serializer())
                             .build());
-
+    public static final Supplier<AttachmentType<Integer>> STILL_TIMER = ATTACHMENT_TYPES.register("still_timer",
+            () -> AttachmentType.builder(() -> 0).serialize(Codec.INT).copyOnDeath().build());
+    public static final Supplier<AttachmentType<Integer>> SPRINT_TIMER = ATTACHMENT_TYPES.register("sprint_timer",
+            () -> AttachmentType.builder(() -> 0).serialize(Codec.INT).copyOnDeath().build());
     public static final DeferredHolder<AttachmentType<?>, AttachmentType<ModDataControl>> MINION_CONTROL =
             ATTACHMENT_TYPES.register("minion_control",
                     () -> AttachmentType.builder(ModDataControl::new)
                             .build());
+    public static final Supplier<AttachmentType<Long>> LAST_COMBAT_TIME = ATTACHMENT_TYPES.register("last_combat_time",
+            () -> AttachmentType.builder(() -> 0L).serialize(Codec.LONG).copyOnDeath().build());
 
-    // 修正: networkSynchronizedを追加してクライアントに同期させる
+    public static final Supplier<AttachmentType<Integer>> SIN_REDUCTION_TIMER = ATTACHMENT_TYPES.register("sin_reduction_timer",
+            () -> AttachmentType.builder(() -> 0).serialize(Codec.INT).copyOnDeath().build());
     public static final Supplier<AttachmentType<Integer>> SIN = ATTACHMENT_TYPES.register("sin",
             () -> AttachmentType.builder(() -> 0)
                     .serialize(Codec.INT)
@@ -38,17 +44,10 @@ public class ModAttachments {
                     .sync(ByteBufCodecs.VAR_INT)
                     .build());
 
-    // ★追加: 罪のクールダウン（サーバー側でのみ使用するため同期不要）
-    public static final Supplier<AttachmentType<Integer>> SIN_COOLDOWN = ATTACHMENT_TYPES.register("sin_cooldown",
-            () -> AttachmentType.builder(() -> 0)
-                    .serialize(Codec.INT)
-                    .copyOnDeath()
-                    .build());
-
-    // その他の既存アタッチメント
-    public static final Supplier<AttachmentType<Integer>> SIN_MODE = ATTACHMENT_TYPES.register("sin_mode",
-            () -> AttachmentType.builder(() -> 0).serialize(Codec.INT).copyOnDeath().sync(ByteBufCodecs.VAR_INT).build());
-
+    public static final Supplier<AttachmentType<Long>> LAST_DAMAGE_TIME = ATTACHMENT_TYPES.register("last_damage_time",
+            () -> AttachmentType.builder(() -> 0L).serialize(Codec.LONG).copyOnDeath().build());
+    public static final Supplier<AttachmentType<Long>> LAST_EAT_TIME = ATTACHMENT_TYPES.register("last_eat_time",
+            () -> AttachmentType.builder(() -> 0L).serialize(Codec.LONG).copyOnDeath().build());
     public static final Supplier<AttachmentType<Integer>> SIN_TIMER = ATTACHMENT_TYPES.register("sin_timer",
             () -> AttachmentType.builder(() -> 0).serialize(Codec.INT).copyOnDeath().build());
 

@@ -22,7 +22,10 @@ public class ModItems {
 
     public static final DeferredItem<Item> TEMPERED_NETHERITE =
             ITEMS.register("tempered_netherite", () -> new Item(new Item.Properties()));
-
+    public static final DeferredItem<Item> JUDGEMENTED_NETHERITE =
+            ITEMS.register("judgemented_netherite", () -> new Item(new Item.Properties()));
+    public static final DeferredItem<Item> JUSTICE_PIECE =
+            ITEMS.register("justices_piece", () -> new Item(new Item.Properties()));
     public static final DeferredItem<Item> HEATED_NETHERITE =
             ITEMS.register("heated_netherite", () -> new Item(new Item.Properties()));
 
@@ -40,18 +43,19 @@ public class ModItems {
 
     public static final DeferredItem<SeraphimRailGunItem> SERAPHIM_RAILGUN =
             ITEMS.register("seraphim_railgun", () -> new SeraphimRailGunItem(Tiers.DIAMOND, 1, -3.1f, new Item.Properties()));
-
+    public static final DeferredItem<GeburahGoldenCoreItem> GOLDEN_CORE =
+            ITEMS.register("golden_core", () -> new GeburahGoldenCoreItem(Tiers.DIAMOND, 7, -3.1f, new Item.Properties()));
     public static final DeferredItem<TheSovereigntyItem> THE_SOVEREIGNTY =
             ITEMS.register("the_sovereignty", () -> new TheSovereigntyItem(Tiers.NETHERITE, 10, -2.8f, new Item.Properties()));
     public static final DeferredItem<GeburahArmorItem> GEBURAH_HELMET =
-            ITEMS.register("geburah_helmet", () -> new GeburahArmorItem(ModArmorMaterials.GEBURAH, ArmorItem.Type.HELMET, new Item.Properties()));
+            ITEMS.register("geburah_helmet", () -> new GeburahArmorItem(ModArmorMaterials.GEBURAH, ArmorItem.Type.HELMET, new Item.Properties().stacksTo(1)));
 
     public static final DeferredItem<GeburahArmorItem> GEBURAH_CHESTPLATE =
-            ITEMS.register("geburah_chestplate", () -> new GeburahArmorItem(ModArmorMaterials.GEBURAH, ArmorItem.Type.CHESTPLATE, new Item.Properties()));
+            ITEMS.register("geburah_chestplate", () -> new GeburahArmorItem(ModArmorMaterials.GEBURAH, ArmorItem.Type.CHESTPLATE, new Item.Properties().stacksTo(1)));
 
     public static final DeferredItem<GeburahArmorItem> GEBURAH_LEGGINGS =
-            ITEMS.register("geburah_leggings", () -> new GeburahArmorItem(ModArmorMaterials.GEBURAH, ArmorItem.Type.LEGGINGS, new Item.Properties()));
+            ITEMS.register("geburah_leggings", () -> new GeburahArmorItem(ModArmorMaterials.GEBURAH, ArmorItem.Type.LEGGINGS, new Item.Properties().stacksTo(1)));
 
     public static final DeferredItem<GeburahArmorItem> GEBURAH_BOOTS =
-            ITEMS.register("geburah_boots", () -> new GeburahArmorItem(ModArmorMaterials.GEBURAH, ArmorItem.Type.BOOTS, new Item.Properties()));
+            ITEMS.register("geburah_boots", () -> new GeburahArmorItem(ModArmorMaterials.GEBURAH, ArmorItem.Type.BOOTS, new Item.Properties().stacksTo(1)));
 }

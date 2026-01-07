@@ -21,10 +21,10 @@ public class ModArmorMaterials {
 
     public static final Holder<ArmorMaterial> GEBURAH = ARMOR_MATERIALS.register("geburah_armor", () -> new ArmorMaterial(
             Util.make(new EnumMap<>(ArmorItem.Type.class), map -> {
-                map.put(ArmorItem.Type.BOOTS, 3);
-                map.put(ArmorItem.Type.LEGGINGS, 6);
-                map.put(ArmorItem.Type.CHESTPLATE, 8);
-                map.put(ArmorItem.Type.HELMET, 3);
+                map.put(ArmorItem.Type.BOOTS, 5);
+                map.put(ArmorItem.Type.LEGGINGS, 8);
+                map.put(ArmorItem.Type.CHESTPLATE, 12);
+                map.put(ArmorItem.Type.HELMET, 5);
             }),
             15,
             SoundEvents.ARMOR_EQUIP_NETHERITE,
@@ -32,7 +32,7 @@ public class ModArmorMaterials {
             List.of(new ArmorMaterial.Layer(
                     ResourceLocation.fromNamespaceAndPath(QA.MOD_ID, "geburah_armor")
             )),
-            3.0F,
+            5.0F,
             0.1F
     ));
 }

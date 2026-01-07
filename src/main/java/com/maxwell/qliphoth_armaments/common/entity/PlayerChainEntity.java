@@ -1,6 +1,7 @@
 package com.maxwell.qliphoth_armaments.common.entity;
 
 import com.maxwell.qliphoth_armaments.api.QAElements;
+import com.maxwell.qliphoth_armaments.common.event.SinManager;
 import com.maxwell.qliphoth_armaments.init.ModEntities;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.protocol.Packet;
@@ -18,6 +19,7 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.Vec3;
+import org.joml.Vector3f;
 
 import java.util.ArrayList;
 import java.util.UUID;
@@ -26,11 +28,15 @@ public class PlayerChainEntity extends LivingEntity {
 
     private static final EntityDataAccessor<Integer> ATTACK_TYPE_ORDINAL = SynchedEntityData.defineId(PlayerChainEntity.class, EntityDataSerializers.INT);
     private static final EntityDataAccessor<Integer> OWNER_ID = SynchedEntityData.defineId(PlayerChainEntity.class, EntityDataSerializers.INT);
+    private static final EntityDataAccessor<Boolean> IS_ATTACK_MODE = SynchedEntityData.defineId(PlayerChainEntity.class, EntityDataSerializers.BOOLEAN);
+    private static final EntityDataAccessor<Vector3f> ORIGIN_POS = SynchedEntityData.defineId(PlayerChainEntity.class, EntityDataSerializers.VECTOR3);
+    private static final EntityDataAccessor<Boolean> ADD_SIN = SynchedEntityData.defineId(PlayerChainEntity.class, EntityDataSerializers.BOOLEAN);
     private UUID ownerUUID;
     private UUID targetUUID;
     private int pullTime;
     private int catchTime;
-
+    private float damage;
+    private static final int LINGER_TIME = 15;
     private Vec3 chainPullToPos = Vec3.ZERO;
     private Vec3 startingPos = Vec3.ZERO;
 
@@ -42,20 +48,90 @@ public class PlayerChainEntity extends LivingEntity {
 
     public static void summon(Level level, Player owner, QAElements type, LivingEntity target, int pullTime, int catchTime) {
         PlayerChainEntity chain = new PlayerChainEntity(ModEntities.PLAYER_CHANE.get(), level);
-        chain.ownerUUID = owner.getUUID();
-        chain.targetUUID = target.getUUID();
+        chain.setupCommon(owner, target, type);
         chain.chainPullToPos = owner.getEyePosition();
         chain.startingPos = getTargetAttachmentPos(target);
         chain.pullTime = pullTime;
         chain.catchTime = catchTime;
-        chain.setAttackType(type);
-        chain.setOwnerId(owner.getId());
+        chain.setAttackMode(false);
         chain.setPos(chain.chainPullToPos);
         level.addFreshEntity(chain);
     }
 
+    public static void summonAttack(Level level, Player owner, QAElements type, LivingEntity target, Vec3 portalPos, float damage, boolean addSin) {
+        PlayerChainEntity chain = new PlayerChainEntity(ModEntities.PLAYER_CHANE.get(), level);
+        chain.setupCommon(owner, target, type);
+        chain.setOriginPos(portalPos);
+        chain.setAttackMode(true);
+        chain.setShouldAddSin(addSin);
+        chain.chainPullToPos = portalPos;
+        chain.startingPos = getTargetAttachmentPos(target);
+        chain.catchTime = 20;
+        chain.damage = damage;
+        chain.setPos(portalPos.x, portalPos.y, portalPos.z);
+        level.addFreshEntity(chain);
+    }
+
+    public void setAttackMode(boolean mode) {
+        this.entityData.set(IS_ATTACK_MODE, mode);
+    }
+
+    public boolean isAttackMode() {
+        return this.entityData.get(IS_ATTACK_MODE);
+    }
+
+    private void setupCommon(Player owner, LivingEntity target, QAElements type) {
+        this.ownerUUID = owner.getUUID();
+        this.targetUUID = target.getUUID();
+        this.setAttackType(type);
+        this.setOwnerId(owner.getId());
+    }
+
     @Override
     public void tick() {
+        super.tick();
+        if (this.level().isClientSide) return;
+        if (isAttackMode()) {
+            tickAttack();
+        } else {
+            tickPull();
+        }
+    }
+
+    public void setShouldAddSin(boolean value) {
+        this.entityData.set(ADD_SIN, value);
+    }
+
+    public boolean shouldAddSin() {
+        return this.entityData.get(ADD_SIN);
+    }
+
+    private void tickAttack() {
+        LivingEntity target = getTarget();
+        if (target == null || !target.isAlive() || this.tickCount > this.catchTime + LINGER_TIME) {
+            this.discard();
+            return;
+        }
+        this.startingPos = getTargetAttachmentPos(target);
+        float progress = Math.min((float) this.tickCount / (float) this.catchTime, 1.0f);
+        Vec3 portal = getOriginPos();
+        if (portal != null) {
+            Vec3 currentTipPos = portal.lerp(this.startingPos, progress);
+            this.setPos(currentTipPos.x, currentTipPos.y, currentTipPos.z);
+        }
+        if (this.tickCount == this.catchTime) {
+            Player owner = getOwner();
+            if (owner != null) {
+                target.hurt(this.damageSources().playerAttack(owner), this.damage);
+                if (this.shouldAddSin()) {
+                    SinManager.applySinToEntity(target, 1);
+                }
+            }
+            this.playSound(SoundEvents.CHAIN_HIT, 1.2F, 0.8F);
+        }
+    }
+
+    public void tickPull() {
         super.tick();
         if (this.level().isClientSide) return;
         if (startingPos == null || chainPullToPos == null) {
@@ -162,6 +238,19 @@ public class PlayerChainEntity extends LivingEntity {
         super.defineSynchedData(builder);
         builder.define(ATTACK_TYPE_ORDINAL, 0);
         builder.define(OWNER_ID, -1);
+        builder.define(ORIGIN_POS, new Vector3f(Float.NaN, Float.NaN, Float.NaN));
+        builder.define(IS_ATTACK_MODE, false);
+        builder.define(ADD_SIN, false);
+    }
+
+    public void setOriginPos(Vec3 pos) {
+        this.entityData.set(ORIGIN_POS, new Vector3f((float) pos.x, (float) pos.y, (float) pos.z));
+    }
+
+    public Vec3 getOriginPos() {
+        Vector3f v = this.entityData.get(ORIGIN_POS);
+        if (v.x == 0 && v.y == 0 && v.z == 0) return null;
+        return new Vec3(v.x, v.y, v.z);
     }
 
     @Override
@@ -171,6 +260,7 @@ public class PlayerChainEntity extends LivingEntity {
         if (tag.hasUUID("Target")) this.targetUUID = tag.getUUID("Target");
         this.pullTime = tag.getInt("PullTime");
         this.catchTime = tag.getInt("CatchTime");
+        this.damage = tag.getFloat("Damage");
         if (tag.contains("PullToX")) {
             this.chainPullToPos = new Vec3(tag.getDouble("PullToX"), tag.getDouble("PullToY"), tag.getDouble("PullToZ"));
         }
@@ -186,6 +276,7 @@ public class PlayerChainEntity extends LivingEntity {
         if (targetUUID != null) tag.putUUID("Target", targetUUID);
         tag.putInt("PullTime", pullTime);
         tag.putInt("CatchTime", catchTime);
+        tag.putFloat("Damage", damage);
         if (chainPullToPos != null) {
             tag.putDouble("PullToX", chainPullToPos.x);
             tag.putDouble("PullToY", chainPullToPos.y);

@@ -12,18 +12,6 @@ public class ModDataComponents {
     public static final DeferredRegister<DataComponentType<?>> DATA_COMPONENT_TYPES =
             DeferredRegister.create(BuiltInRegistries.DATA_COMPONENT_TYPE, QA.MOD_ID);
 
-    public static final DeferredHolder<DataComponentType<?>, DataComponentType<Boolean>> RAMPAGE_MODE =
-            DATA_COMPONENT_TYPES.register("rampage_mode", () -> DataComponentType.<Boolean>builder()
-                    .persistent(Codec.BOOL)
-                    .networkSynchronized(ByteBufCodecs.BOOL)
-                    .build());
-
-    public static final DeferredHolder<DataComponentType<?>, DataComponentType<Integer>> RAMPAGE_DURATION =
-            DATA_COMPONENT_TYPES.register("rampage_duration", () -> DataComponentType.<Integer>builder()
-                    .persistent(Codec.INT)
-                    .networkSynchronized(ByteBufCodecs.INT)
-                    .build());
-
     public static final DeferredHolder<DataComponentType<?>, DataComponentType<Integer>> MODE =
             DATA_COMPONENT_TYPES.register("mode", () -> DataComponentType.<Integer>builder()
                     .persistent(Codec.INT)

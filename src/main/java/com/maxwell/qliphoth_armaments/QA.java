@@ -18,6 +18,7 @@ public class QA {
         ModAttachments.register(modEventBus);
         ModArmorMaterials.ARMOR_MATERIALS.register(modEventBus);
         ModItems.ITEMS.register(modEventBus);
+        ModSins.SINS.register(modEventBus);
         ModDataComponents.DATA_COMPONENT_TYPES.register(modEventBus);
         ModEntities.ENTITIES.register(modEventBus);
         ModRecipes.register(modEventBus);
