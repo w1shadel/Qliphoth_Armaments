@@ -91,7 +91,7 @@ public class ClientModEvents {
     @SubscribeEvent
     public static void registerClientExtensions(RegisterClientExtensionsEvent event) {
         new SimpleAnimatedItemRenderer(ModItems.SERAPHIM_RAILGUN, ModModels.SERAPHIM_RAILGUN, QA.MOD_ID, "seraphim_railgun")
-                .setScale(1.0f)
+                .setScale(ItemDisplayContext.FIRST_PERSON_RIGHT_HAND, 1.0f)
                 .setVanillaTransform(ItemDisplayContext.FIRST_PERSON_RIGHT_HAND,
                         0f, -0.2f, 0f)
                 .setThirdPersonRight(
@@ -99,7 +99,21 @@ public class ClientModEvents {
                         0.0f, 0.0f, 0.0f
                 )
                 .setGui(0.0f, -0.2f, 0.0f, 0.6f)
-//                .setEmissive("seraphim_railgun_emissive")
+                .setEmissive("seraphim_railgun_emissive")
+                .register(event);
+        new SimpleAnimatedItemRenderer(ModItems.THE_SOVEREIGNTY, ModModels.THE_SOVEREIGNTY, QA.MOD_ID, "the_sovereignty/the_sovereignty")
+                .setEmissive("the_sovereignty/the_sovereignty_emissive")
+                .setBaseTransparent()
+                .setTextureAnimation(10, 2, SimpleAnimatedItemRenderer.TextureAnimationMode.PING_PONG)
+                .setScale(ItemDisplayContext.FIRST_PERSON_RIGHT_HAND, 1.0f)
+                .setVanillaTransform(ItemDisplayContext.FIRST_PERSON_RIGHT_HAND,
+                        0f, 0.4f, 0f)
+                .setThirdPersonRight(
+                        0.0f, 0.3f, 0.0f,
+                        0.0f, 0.0f, 0.0f
+                )
+                .setPulsatingGlow(0.2f, 0.4f)
+                .setGui(0.3f, 0.0f, 0.0f, 0.6f)
                 .register(event);
     }
 }

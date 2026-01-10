@@ -12,4 +12,6 @@ public class ModModels {
     public static final DeferredRegister<FDModelInfo> INFOS = DeferredRegister.create(FDRegistries.MODELS, QA.MOD_ID);
     public static final Supplier<FDModelInfo> SERAPHIM_RAILGUN = INFOS.register("seraphim_railgun",
             () -> new FDModelInfo(ResourceLocation.tryBuild(QA.MOD_ID, "seraphim_railgun"), 1.0F));
+    public static final Supplier<FDModelInfo> THE_SOVEREIGNTY = INFOS.register("the_sovereignty",
+            () -> new FDModelInfo(ResourceLocation.tryBuild(QA.MOD_ID, "the_sovereignty"), 1.0F));
 }

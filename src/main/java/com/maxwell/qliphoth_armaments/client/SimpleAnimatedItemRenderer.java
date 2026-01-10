@@ -4,10 +4,13 @@ import com.finderfeed.fdlib.systems.bedrock.animations.animation_system.item.FDI
 import com.finderfeed.fdlib.systems.bedrock.animations.animation_system.item.FDModelItemRenderer;
 import com.finderfeed.fdlib.systems.bedrock.animations.animation_system.item.FDModelItemRendererOptions;
 import com.finderfeed.fdlib.systems.bedrock.models.FDModelInfo;
+import com.finderfeed.fdlib.util.FDColor;
+import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.RenderType;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemDisplayContext;
+import net.minecraft.world.level.Level;
 import net.neoforged.neoforge.client.extensions.common.RegisterClientExtensionsEvent;
 import org.joml.Vector3f;
 
@@ -16,30 +19,67 @@ import java.util.Map;
 import java.util.function.Supplier;
 
 public class SimpleAnimatedItemRenderer {
+    public enum TextureAnimationMode {
+        LOOP,
+        PING_PONG
+    }
+
     private final Item item;
     private final Supplier<FDModelInfo> modelInfoSupplier;
-    private final ResourceLocation baseTexture;
     private final String modid;
+    private final String baseTextureName;
+    private String emissiveTextureName = null;
+    private boolean isBaseTranslucent = false;
+    private boolean isPulsating = false;
+    private float pulseSpeed = 1.0f;
+    private float minAlpha = 1.0f;
+    private boolean isTextureAnimated = false;
+    private int frameCount = 1;
+    private int ticksPerFrame = 1;
+    private TextureAnimationMode animMode = TextureAnimationMode.LOOP;
     private float globalScale = 1.0f;
     private final Map<ItemDisplayContext, Vector3f> translations = new HashMap<>();
     private final Map<ItemDisplayContext, Vector3f> rotations = new HashMap<>();
     private final Map<ItemDisplayContext, Float> scales = new HashMap<>();
-    private ResourceLocation emissiveTexture;
 
     public SimpleAnimatedItemRenderer(Supplier<? extends Item> item, Supplier<FDModelInfo> modelInfo, String modid, String textureName) {
         this.item = item.get();
         this.modelInfoSupplier = modelInfo;
         this.modid = modid;
-        this.baseTexture = ResourceLocation.tryBuild(modid, "textures/item/" + textureName + ".png");
+        this.baseTextureName = textureName;
+    }
+
+    public SimpleAnimatedItemRenderer setEmissive(String textureName) {
+        this.emissiveTextureName = textureName;
+        return this;
+    }
+
+    public SimpleAnimatedItemRenderer setBaseTransparent() {
+        this.isBaseTranslucent = true;
+        return this;
+    }
+
+    public SimpleAnimatedItemRenderer setPulsatingGlow(float speed, float minAlpha) {
+        this.isPulsating = true;
+        this.pulseSpeed = speed;
+        this.minAlpha = minAlpha;
+        return this;
+    }
+
+    public SimpleAnimatedItemRenderer setTextureAnimation(int frameCount, int ticksPerFrame) {
+        return setTextureAnimation(frameCount, ticksPerFrame, TextureAnimationMode.LOOP);
+    }
+
+    public SimpleAnimatedItemRenderer setTextureAnimation(int frameCount, int ticksPerFrame, TextureAnimationMode mode) {
+        this.isTextureAnimated = true;
+        this.frameCount = Math.max(1, frameCount);
+        this.ticksPerFrame = Math.max(1, ticksPerFrame);
+        this.animMode = mode;
+        return this;
     }
 
     public SimpleAnimatedItemRenderer setScale(float scale) {
         this.globalScale = scale;
-        return this;
-    }
-
-    public SimpleAnimatedItemRenderer setEmissive(String textureName) {
-        this.emissiveTexture = ResourceLocation.tryBuild(this.modid, "textures/item/" + textureName + ".png");
         return this;
     }
 
@@ -51,13 +91,6 @@ public class SimpleAnimatedItemRenderer {
     public SimpleAnimatedItemRenderer setGui(float x, float y, float z, float scale) {
         translations.put(ItemDisplayContext.GUI, new Vector3f(x, y, z));
         rotations.put(ItemDisplayContext.GUI, new Vector3f(30.0f, 225.0f, 0.0f));
-        scales.put(ItemDisplayContext.GUI, scale);
-        return this;
-    }
-
-    public SimpleAnimatedItemRenderer setGui(float x, float y, float z, float rotX, float rotY, float rotZ, float scale) {
-        translations.put(ItemDisplayContext.GUI, new Vector3f(x, y, z));
-        rotations.put(ItemDisplayContext.GUI, new Vector3f(rotX, rotY, rotZ));
         scales.put(ItemDisplayContext.GUI, scale);
         return this;
     }
@@ -80,24 +113,62 @@ public class SimpleAnimatedItemRenderer {
         return this;
     }
 
+    private ResourceLocation getCurrentTexture(String baseName) {
+        if (!isTextureAnimated || frameCount <= 1) {
+            return ResourceLocation.tryBuild(modid, "textures/item/" + baseName + ".png");
+        }
+        Level level = Minecraft.getInstance().level;
+        long gameTime = (level != null) ? level.getGameTime() : 0;
+        long totalFramesPassed = gameTime / ticksPerFrame;
+        int currentFrame = 0;
+        switch (animMode) {
+            case LOOP -> currentFrame = (int) (totalFramesPassed % frameCount);
+            case PING_PONG -> {
+                int cycleLength = (frameCount - 1) * 2;
+                if (cycleLength <= 0) cycleLength = 1;
+                int cyclePos = (int) (totalFramesPassed % cycleLength);
+                if (cyclePos < frameCount) {
+                    currentFrame = cyclePos;
+                } else {
+                    currentFrame = cycleLength - cyclePos;
+                }
+            }
+        }
+        return ResourceLocation.tryBuild(modid, "textures/item/" + baseName + "_" + currentFrame + ".png");
+    }
+
+    private FDColor calculatePulseColor() {
+        float time = (float) System.currentTimeMillis() / 1000.0f;
+        float sinVal = (float) Math.sin(time * 10.0f * this.pulseSpeed);
+        float normalized = (sinVal + 1.0f) / 2.0f;
+        float alpha = this.minAlpha + (normalized * (1.0f - this.minAlpha));
+        return new FDColor(1.0f, 1.0f, 1.0f, alpha);
+    }
+
     public void register(RegisterClientExtensionsEvent event) {
-        // オプションビルダーを作成
         var options = FDModelItemRendererOptions.create();
-        // 1層目: ベーステクスチャ (通常)
         options.addModel(FDItemModelOptions.builder()
                 .modelInfo(this.modelInfoSupplier)
-                .renderType((ctx, stack) -> RenderType.entityCutoutNoCull(this.baseTexture))
+                .renderType((ctx, stack) -> {
+                    ResourceLocation tex = getCurrentTexture(this.baseTextureName);
+                    return this.isBaseTranslucent
+                            ? RenderType.entityTranslucent(tex)
+                            : RenderType.entityCutoutNoCull(tex);
+                })
                 .build()
         );
-        // ▼ 追加: エミッシブテクスチャがある場合、2層目として重ねる
-        if (this.emissiveTexture != null) {
-            options.addModel(FDItemModelOptions.builder()
+        if (this.emissiveTextureName != null) {
+            var emissiveBuilder = FDItemModelOptions.builder()
                     .modelInfo(this.modelInfoSupplier)
-                    .renderType((ctx, stack) -> RenderType.entityTranslucentEmissive(this.emissiveTexture))
-                    .build()
-            );
+                    .renderType((ctx, stack) -> {
+                        ResourceLocation tex = getCurrentTexture(this.emissiveTextureName);
+                        return RenderType.entityTranslucentEmissive(tex);
+                    });
+            if (this.isPulsating) {
+                emissiveBuilder.itemColor((ctx, stack) -> calculatePulseColor());
+            }
+            options.addModel(emissiveBuilder.build());
         }
-        // 共通のトランスフォーム設定
         options.setScale((ctx) -> this.scales.getOrDefault(ctx, this.globalScale))
                 .addRotation3((ctx) -> this.rotations.getOrDefault(ctx, new Vector3f()))
                 .addTranslation((ctx) -> this.translations.getOrDefault(ctx, new Vector3f()));
