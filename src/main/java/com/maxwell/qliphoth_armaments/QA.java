@@ -1,0 +1,36 @@
+package com.maxwell.qliphoth_armaments;
+
+import com.maxwell.qliphoth_armaments.common.entity.ChesedCoreMinionEntity;
+import com.maxwell.qliphoth_armaments.config.QAConfig;
+import com.maxwell.qliphoth_armaments.init.*;
+import net.neoforged.bus.api.IEventBus;
+import net.neoforged.fml.ModContainer;
+import net.neoforged.fml.common.Mod;
+import net.neoforged.fml.config.ModConfig;
+import net.neoforged.neoforge.event.entity.EntityAttributeCreationEvent;
+
+@Mod(QA.MOD_ID)
+public class QA {
+    public static final String MOD_ID = "qliphoth_armaments";
+
+    public QA(IEventBus modEventBus, ModContainer modContainer) {
+        ModAttachments.register(modEventBus);
+        ModAnims.ANIMATIONS.register(modEventBus);
+        ModModels.INFOS.register(modEventBus);
+        ModArmorMaterials.ARMOR_MATERIALS.register(modEventBus);
+        ModItems.ITEMS.register(modEventBus);
+        ModSins.SINS.register(modEventBus);
+        ModDataComponents.DATA_COMPONENT_TYPES.register(modEventBus);
+        ModEntities.ENTITIES.register(modEventBus);
+        ModRecipes.register(modEventBus);
+        ModCreativeTabs.TABS.register(modEventBus);
+        modEventBus.addListener(this::addEntityAttributes);
+        modContainer.registerConfig(ModConfig.Type.COMMON, QAConfig.COMMON_SPEC);
+    }
+
+    private void addEntityAttributes(EntityAttributeCreationEvent event) {
+        event.put(ModEntities.CHESED_CORE_MINION.get(), ChesedCoreMinionEntity.createAttributes().build());
+        event.put(ModEntities.MINION_ELECTRIC_SPHERE.get(), ChesedCoreMinionEntity.createAttributes().build());
+        event.put(ModEntities.PLAYER_CHANE.get(), ChesedCoreMinionEntity.createAttributes().build());
+    }
+}

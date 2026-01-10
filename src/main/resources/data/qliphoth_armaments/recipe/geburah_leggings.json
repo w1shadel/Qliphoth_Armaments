@@ -1,0 +1,22 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "LLL",
+    "BJB",
+    "B B"
+  ],
+  "key": {
+    "L": {
+      "item": "fdbosses:justicestone_beam"
+    },
+    "B": {
+      "item": "fdbosses:justicestone_bricks"
+    },
+    "J": {
+      "item": "qliphoth_armaments:judgemented_netherite"
+    }
+  },
+  "result": {
+    "id": "qliphoth_armaments:geburah_leggings"
+  }
+}
