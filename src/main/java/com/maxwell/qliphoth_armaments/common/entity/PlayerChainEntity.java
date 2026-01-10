@@ -25,7 +25,6 @@ import java.util.ArrayList;
 import java.util.UUID;
 
 public class PlayerChainEntity extends LivingEntity {
-
     private static final EntityDataAccessor<Integer> ATTACK_TYPE_ORDINAL = SynchedEntityData.defineId(PlayerChainEntity.class, EntityDataSerializers.INT);
     private static final EntityDataAccessor<Integer> OWNER_ID = SynchedEntityData.defineId(PlayerChainEntity.class, EntityDataSerializers.INT);
     private static final EntityDataAccessor<Boolean> IS_ATTACK_MODE = SynchedEntityData.defineId(PlayerChainEntity.class, EntityDataSerializers.BOOLEAN);

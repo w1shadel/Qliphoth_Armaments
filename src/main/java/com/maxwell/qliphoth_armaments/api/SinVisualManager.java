@@ -17,12 +17,10 @@ import org.joml.Vector3f;
 import java.util.Random;
 
 public class SinVisualManager {
-
     private static final float RED_R = 0.8f;
     private static final float RED_G = 0.1f;
     private static final float RED_B = 0.1f;
     private static final Random random = new Random();
-
     private static final Vector3f RED_COLOR = new Vector3f(0.8f, 0.0f, 0.1f);
 
     public static void spawnAwakeningAura(LivingEntity entity) {

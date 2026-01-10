@@ -11,19 +11,23 @@ import com.maxwell.qliphoth_armaments.client.model.GeburahModel;
 import com.maxwell.qliphoth_armaments.client.renderer.PlayerChainRenderer;
 import com.maxwell.qliphoth_armaments.client.renderer.layers.PlayerHaloLayer;
 import com.maxwell.qliphoth_armaments.init.ModEntities;
+import com.maxwell.qliphoth_armaments.init.ModItems;
+import com.maxwell.qliphoth_armaments.init.ModModels;
 import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.entity.player.PlayerRenderer;
 import net.minecraft.client.resources.PlayerSkin;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.Mth;
+import net.minecraft.world.item.ItemDisplayContext;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.client.event.EntityRenderersEvent;
 import net.neoforged.neoforge.client.event.RegisterGuiLayersEvent;
+import net.neoforged.neoforge.client.extensions.common.RegisterClientExtensionsEvent;
 import net.neoforged.neoforge.client.gui.VanillaGuiLayers;
 
-@EventBusSubscriber(modid = QA.MOD_ID, bus = EventBusSubscriber.Bus.GAME, value = Dist.CLIENT)
+@EventBusSubscriber(modid = QA.MOD_ID, bus = EventBusSubscriber.Bus.MOD, value = Dist.CLIENT)
 public class ClientModEvents {
     @SubscribeEvent
     public static void registerLayerDefinitions(EntityRenderersEvent.RegisterLayerDefinitions event) {
@@ -82,5 +86,20 @@ public class ClientModEvents {
         if (slimRenderer != null) {
             slimRenderer.addLayer(new PlayerHaloLayer(slimRenderer));
         }
+    }
+
+    @SubscribeEvent
+    public static void registerClientExtensions(RegisterClientExtensionsEvent event) {
+        new SimpleAnimatedItemRenderer(ModItems.SERAPHIM_RAILGUN, ModModels.SERAPHIM_RAILGUN, QA.MOD_ID, "seraphim_railgun")
+                .setScale(1.0f)
+                .setVanillaTransform(ItemDisplayContext.FIRST_PERSON_RIGHT_HAND,
+                        0f, -0.2f, 0f)
+                .setThirdPersonRight(
+                        0.0f, -0.5f, 0.0f,
+                        0.0f, 0.0f, 0.0f
+                )
+                .setGui(0.0f, -0.2f, 0.0f, 0.6f)
+//                .setEmissive("seraphim_railgun_emissive")
+                .register(event);
     }
 }

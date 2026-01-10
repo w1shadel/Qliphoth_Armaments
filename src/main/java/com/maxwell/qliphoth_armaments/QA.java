@@ -11,11 +11,12 @@ import net.neoforged.neoforge.event.entity.EntityAttributeCreationEvent;
 
 @Mod(QA.MOD_ID)
 public class QA {
-
     public static final String MOD_ID = "qliphoth_armaments";
 
     public QA(IEventBus modEventBus, ModContainer modContainer) {
         ModAttachments.register(modEventBus);
+        ModAnims.ANIMATIONS.register(modEventBus);
+        ModModels.INFOS.register(modEventBus);
         ModArmorMaterials.ARMOR_MATERIALS.register(modEventBus);
         ModItems.ITEMS.register(modEventBus);
         ModSins.SINS.register(modEventBus);

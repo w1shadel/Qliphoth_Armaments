@@ -32,7 +32,6 @@ public class SilenceSin extends PlayerSin {
 
     @Override
     public void onSinAdded(Player player, ActivePlayerSinInstance instance) {
-        // 罪が始まった時にタイマーを初期化しておく
         player.setData(ModAttachments.SPRINT_TIMER, 0);
     }
 }

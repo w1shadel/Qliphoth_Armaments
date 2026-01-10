@@ -17,9 +17,7 @@ import java.util.List;
 import java.util.UUID;
 
 public class MalkuthPlayerAttackLogic extends Entity {
-
     private UUID ownerUUID;
-
     private QAElements attackType;
     private float damage;
     private boolean isSword;

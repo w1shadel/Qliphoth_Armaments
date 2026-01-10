@@ -8,6 +8,12 @@ import com.finderfeed.fdbosses.init.BossDamageSources;
 import com.finderfeed.fdbosses.init.BossSounds;
 import com.finderfeed.fdlib.FDHelpers;
 import com.finderfeed.fdlib.FDLibCalls;
+import com.finderfeed.fdlib.systems.bedrock.animations.animation_system.AnimationTicker;
+import com.finderfeed.fdlib.systems.bedrock.animations.animation_system.item.AnimatedItem;
+import com.finderfeed.fdlib.systems.bedrock.animations.animation_system.item.FDItemAnimationHandler;
+import com.finderfeed.fdlib.systems.bedrock.animations.animation_system.item.FDItemAnimationSystem;
+import com.finderfeed.fdlib.systems.bedrock.animations.animation_system.item.FDServerItemAnimations;
+import com.finderfeed.fdlib.systems.bedrock.animations.animation_system.item.animated_item.AnimatedItemStackContext;
 import com.finderfeed.fdlib.systems.impact_frames.ImpactFrame;
 import com.finderfeed.fdlib.systems.shake.FDShakeData;
 import com.finderfeed.fdlib.systems.shake.PositionedScreenShakePacket;
@@ -16,11 +22,11 @@ import com.finderfeed.fdlib.util.client.particles.lightning_particle.LightningPa
 import com.maxwell.qliphoth_armaments.api.ElementalReactionManager;
 import com.maxwell.qliphoth_armaments.api.QAElements;
 import com.maxwell.qliphoth_armaments.common.util.GradientTextUtil;
+import com.maxwell.qliphoth_armaments.init.ModAnims;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.particles.ParticleType;
-import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.sounds.SoundEvents;
@@ -37,23 +43,16 @@ import net.minecraft.world.item.*;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
-import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
 import org.joml.Vector3f;
 
 import java.awt.*;
 import java.util.List;
 
-public class SeraphimRailGunItem extends SwordItem implements QAModWeapon {
-
-    private static final int MAX_CHARGE_TIME = 72000;
-
-    private static final int MIN_CHARGE_TIME = 40;
-    private static final int OVER_CHARGE_TIME = 100;
-
-    private static final int DASH_COOLDOWN = 30;
+public class SeraphimRailGunItem extends SwordItem implements QAModWeapon, AnimatedItem {
+    private static final int FIRE_TICK = 80;
+    private static final int END_TICK = 220;
     private static final int RAILGUN_COOLDOWN = 100;
-    private static final int OVERDRIVE_COOLDOWN = 300;
 
     public SeraphimRailGunItem(Tier tier, float attackDamage, float attackSpeed, Properties properties) {
         super(tier, properties.attributes(SwordItem.createAttributes(tier, (int) attackDamage, attackSpeed)));
@@ -69,164 +68,109 @@ public class SeraphimRailGunItem extends SwordItem implements QAModWeapon {
     }
 
     @Override
-    public InteractionResultHolder<ItemStack> use(Level pLevel, Player pPlayer, InteractionHand pHand) {
-        ItemStack itemstack = pPlayer.getItemInHand(pHand);
-        pPlayer.startUsingItem(pHand);
-        pLevel.playSound(null, pPlayer.getX(), pPlayer.getY(), pPlayer.getZ(),
-                BossSounds.CHESED_FINAL_ATTACK_CHARGE.get(), SoundSource.PLAYERS, 1.0F, 1.0F);
+    public InteractionResultHolder<ItemStack> use(Level level, Player player, InteractionHand hand) {
+        ItemStack itemstack = player.getItemInHand(hand);
+        player.startUsingItem(hand);
+        if (!level.isClientSide) {
+            FDServerItemAnimations.startItemAnimation(
+                    player,
+                    "ACTION",
+                    AnimationTicker.builder(ModAnims.SERAPHIM_CHARGE)
+                            .build(),
+                    hand
+            );
+            level.playSound(null, player.getX(), player.getY(), player.getZ(),
+                    BossSounds.CHESED_FINAL_ATTACK_CHARGE.get(), SoundSource.PLAYERS, 1.0F, 1.0F);
+        }
         return InteractionResultHolder.consume(itemstack);
     }
 
     @Override
     public void onUseTick(Level level, LivingEntity livingEntity, ItemStack stack, int count) {
         if (!(livingEntity instanceof Player player)) return;
-        int duration = this.getUseDuration(stack, player) - count;
-        if (!level.isClientSide) {
-            player.addEffect(new MobEffectInstance(MobEffects.MOVEMENT_SLOWDOWN, 2, 2, false, false));
-        }
+        int ticksUsed = this.getUseDuration(stack, player) - count;
+        if (level.isClientSide) return;
+        ServerLevel serverLevel = (ServerLevel) level;
+        player.addEffect(new MobEffectInstance(MobEffects.MOVEMENT_SLOWDOWN, 2, 2, false, false));
         player.setDeltaMovement(0, Math.min(player.getDeltaMovement().y, 0), 0);
-        if (!level.isClientSide) {
-            ServerLevel serverLevel = (ServerLevel) level;
-            if (duration < MIN_CHARGE_TIME) {
-                if (duration % 2 == 0) {
-                    spawnGatheringParticles(serverLevel, player, 1.5, 0.2F, 0.8F, 1.0F);
-                }
-                if (duration % 10 == 0) {
-                    float pitch = 0.5F + ((float) duration / MIN_CHARGE_TIME) * 1.5F;
-                    level.playSound(null, player.getX(), player.getY(), player.getZ(),
-                            SoundEvents.BEACON_AMBIENT, SoundSource.PLAYERS, 0.5F, pitch);
-                }
+        if (ticksUsed < FIRE_TICK) {
+            if (ticksUsed % 2 == 0) {
+                spawnGatheringParticles(serverLevel, player, 1.5, 0.2F, 0.8F, 1.0F);
             }
-            if (duration == MIN_CHARGE_TIME) {
-                playChargeCompleteSound(level, player, 1.0F);
-                spawnBurstParticles(serverLevel, player, 0.0F, 1.0F, 1.0F);
-                PositionedScreenShakePacket.send(serverLevel,
-                        FDShakeData.builder().amplitude(1.0F).inTime(2).stayTime(5).outTime(5).build(),
-                        player.position(), 32.0D);
+            if (ticksUsed > 40 && ticksUsed % 10 == 0) {
+                spawnArcLightning(serverLevel, player);
             }
-            if (duration > MIN_CHARGE_TIME && duration < OVER_CHARGE_TIME) {
-                if (duration % 3 == 0) {
-                    spawnGatheringParticles(serverLevel, player, 2.0, 1.0F, 0.5F, 0.0F);
-                    ArcLightningOptions arc = ArcLightningOptions.builder((ParticleType) BossParticles.ARC_LIGHTNING.get())
-                            .end(player.getX() + (level.random.nextDouble() - 0.5), player.getY() + 1.2, player.getZ() + (level.random.nextDouble() - 0.5))
-                            .lifetime(2).color(255, 100, 50).width(0.1F).build();
-                    FDLibCalls.sendParticles(serverLevel, arc, player.position().add(0, 3, 0), 64.0D);
-                }
-                if (duration % 5 == 0) {
-                    float pitch = 1.0F + ((float) (duration - MIN_CHARGE_TIME) / (OVER_CHARGE_TIME - MIN_CHARGE_TIME));
-                    level.playSound(null, player.getX(), player.getY(), player.getZ(),
-                            SoundEvents.CONDUIT_ATTACK_TARGET, SoundSource.PLAYERS, 0.2F, pitch);
-                }
-            }
-            if (duration == OVER_CHARGE_TIME) {
+            if (ticksUsed % 10 == 0) {
+                float pitch = 0.5F + ((float) ticksUsed / FIRE_TICK) * 1.5F;
                 level.playSound(null, player.getX(), player.getY(), player.getZ(),
-                        BossSounds.CHESED_OPEN.get(), SoundSource.PLAYERS, 1.0F, 1.5F);
-                spawnBurstParticles(serverLevel, player, 1.0F, 0.2F, 0.2F);
-                PositionedScreenShakePacket.send(serverLevel,
-                        FDShakeData.builder().amplitude(2.5F).inTime(2).stayTime(10).outTime(10).build(),
-                        player.position(), 32.0D);
-                player.displayClientMessage(Component.literal("LIMIT BREAKER READY").withStyle(ChatFormatting.RED, ChatFormatting.BOLD), true);
+                        SoundEvents.BEACON_AMBIENT, SoundSource.PLAYERS, 0.5F, pitch);
             }
+        }
+        if (ticksUsed == FIRE_TICK) {
+            FDServerItemAnimations.startItemAnimation(
+                    player,
+                    "ACTION",
+                    AnimationTicker.builder(ModAnims.SERAPHIM_SHOOT)
+                            .build(),
+                    player.getUsedItemHand()
+            );
+            performLaserAttack(serverLevel, player, stack, true);
+            player.getCooldowns().addCooldown(this, RAILGUN_COOLDOWN);
+            spawnBurstParticles(serverLevel, player, 0.0F, 1.0F, 1.0F);
+        }
+        if (ticksUsed >= END_TICK) {
+            player.stopUsingItem();
         }
     }
 
     @Override
     public void releaseUsing(ItemStack pStack, Level pLevel, LivingEntity pLivingEntity, int pTimeLeft) {
-        if (!(pLivingEntity instanceof Player player)) {
-            return;
-        }
-        int chargeTime = this.getUseDuration(pStack, player) - pTimeLeft;
-        if (chargeTime < MIN_CHARGE_TIME) {
-            if (!pLevel.isClientSide) {
-                performDashAttack((ServerLevel) pLevel, player, pStack);
-            }
-            player.getCooldowns().addCooldown(this, DASH_COOLDOWN);
-        } else if (chargeTime < OVER_CHARGE_TIME) {
-            if (!pLevel.isClientSide) {
-                performLaserAttack((ServerLevel) pLevel, player, pStack, false);
-            }
-            player.getCooldowns().addCooldown(this, RAILGUN_COOLDOWN);
-            player.swing(InteractionHand.MAIN_HAND);
-        } else {
-            if (!pLevel.isClientSide) {
-                performLaserAttack((ServerLevel) pLevel, player, pStack, true);
-            }
-            player.getCooldowns().addCooldown(this, OVERDRIVE_COOLDOWN);
-            player.swing(InteractionHand.MAIN_HAND);
-        }
     }
 
-    private void performDashAttack(ServerLevel level, Player player, ItemStack stack) {
-        Vec3 look = player.getLookAngle();
-        double speed = 4.0;
-        Vec3 dashVec = look.scale(speed);
-        player.push(dashVec.x, 0.5, dashVec.z);
-        player.hurtMarked = true;
-        player.invulnerableTime = 20;
-        level.playSound(null, player.getX(), player.getY(), player.getZ(),
-                SoundEvents.TRIDENT_RIPTIDE_3, SoundSource.PLAYERS, 1.0F, 1.5F);
-        level.playSound(null, player.getX(), player.getY(), player.getZ(),
-                SoundEvents.LIGHTNING_BOLT_THUNDER, SoundSource.PLAYERS, 0.5F, 2.0F);
-        Vec3 startPos = player.position();
-        Vec3 endPos = startPos.add(dashVec.scale(3.0));
-        AABB pathBox = new AABB(startPos, endPos).inflate(3.0);
-        float damage = getScaledDamage(player, 4.0F);
-        List<Entity> targets = FDHelpers.traceEntities(level, startPos, endPos, 3.0, e -> e != player && e instanceof LivingEntity);
-        for (Entity e : targets) {
-            if (e instanceof LivingEntity target) {
-                target.hurt(BossDamageSources.chesedAttack(player), damage);
-                ElementalReactionManager.applyState(target, QAElements.LIGHTNING, 200);
-                Vec3 knockback = target.position().subtract(player.position()).normalize().scale(1.5);
-                target.push(knockback.x, 0.5, knockback.z);
-                level.sendParticles(ParticleTypes.ELECTRIC_SPARK, target.getX(), target.getY() + 1, target.getZ(), 10, 0.5, 0.5, 0.5, 0.2);
-            }
-        }
-        for (int i = 0; i < 15; i++) {
-            Vec3 p = startPos.lerp(endPos, i / 15.0);
-            level.sendParticles(ParticleTypes.SOUL_FIRE_FLAME, p.x, p.y + 1, p.z, 2, 0.2, 0.2, 0.2, 0.05);
+    @Override
+    public void animatedItemTick(AnimatedItemStackContext ctx) {
+        FDItemAnimationSystem animSystem = FDItemAnimationHandler.getItemAnimationSystem(ctx);
+        if (animSystem != null) {
+            animSystem.startAnimation("IDLE",
+                    AnimationTicker.builder(ModAnims.SERAPHIM_IDLE)
+                            .build()
+            );
         }
     }
 
     private void performLaserAttack(ServerLevel level, Player owner, ItemStack stack, boolean isOvercharge) {
         Vec3 startPos = owner.getEyePosition();
         Vec3 lookDir = owner.getLookAngle().normalize();
-        double maxRange = isOvercharge ? 350.0D : 256.0D;
+        double maxRange = 350.0D;
         Vec3 endPos = startPos.add(lookDir.scale(maxRange));
-        float width = isOvercharge ? 35.0F : 25.0F;
-        Color laserColor, lightningColor;
-        if (isOvercharge) {
-            laserColor = new Color(255, 100, 100);
-            lightningColor = new Color(255, 200, 50);
-        } else {
-            laserColor = new Color(255, 255, 100);
-            lightningColor = new Color(255, 255, 220);
-        }
+        float width = 35.0F;
+        float r = 1.0F;
+        float g = 0.4F;
+        float b = 0.4F;
         ChesedRayOptions options = ChesedRayOptions.builder()
                 .time(20, 30, 15)
                 .width(width)
-                .color(laserColor.getRed(), laserColor.getGreen(), laserColor.getBlue())
-                .lightningColor(lightningColor.getRed(), lightningColor.getGreen(), lightningColor.getBlue())
+                .color(r, g, b)
+                .lightningColor(1.0F, 0.8F, 0.2F)
                 .end(endPos)
                 .build();
         FDLibCalls.sendParticles(level, options, startPos, 256.0D);
-        float pitch = isOvercharge ? 0.6F : 0.7F;
         level.playSound(null, owner.getX(), owner.getY(), owner.getZ(),
-                BossSounds.CHESED_FINAL_ATTACK_RAY.get(), SoundSource.PLAYERS, 3.0F, pitch);
-        ImpactFrame baseFrame = new ImpactFrame(isOvercharge ? 5.0F : 3.0F, 0.2F, 20, false);
+                BossSounds.CHESED_FINAL_ATTACK_RAY.get(), SoundSource.PLAYERS, 3.0F, 0.6F);
+        ImpactFrame baseFrame = new ImpactFrame(5.0F, 0.2F, 20, false);
         FDLibCalls.sendImpactFrames(level, owner.position(), 256.0F, baseFrame);
-        float recoil = isOvercharge ? 3.5F : 2.0F;
         PositionedScreenShakePacket.send(level,
-                FDShakeData.builder().frequency(40.0F).amplitude(recoil + 2.0F).inTime(0).stayTime(10).outTime(20).build(),
+                FDShakeData.builder().frequency(40.0F).amplitude(5.5F).inTime(0).stayTime(10).outTime(20).build(),
                 owner.position(), 64.0D);
+        float recoil = 3.5F;
         owner.push(-lookDir.x * recoil, 0.5, -lookDir.z * recoil);
         owner.hurtMarked = true;
         BallParticleOptions blast = BallParticleOptions.builder()
-                .color(laserColor.getRed() / 255f, laserColor.getGreen() / 255f, laserColor.getBlue() / 255f)
+                .color(r, g, b)
                 .scalingOptions(0, 5, 20).size(1.0F).brightness(10).build();
         level.sendParticles(blast, startPos.x + lookDir.x, startPos.y + lookDir.y, startPos.z + lookDir.z, 1, 0, 0, 0, 0);
-        float baseMult = isOvercharge ? 25.0F : 15.0F;
-        double hitRadius = isOvercharge ? 18.0D : 12.0D;
-        float damage = getScaledDamage(owner, baseMult);
+        float damage = getScaledDamage(owner, 25.0F);
+        double hitRadius = 18.0D;
         List<Entity> hitEntities = FDHelpers.traceEntities(level, startPos, endPos, hitRadius, (entity) -> !(entity instanceof Player));
         for (Entity entity : hitEntities) {
             if (entity instanceof LivingEntity living) {
@@ -235,7 +179,7 @@ public class SeraphimRailGunItem extends SwordItem implements QAModWeapon {
                 living.hurt(BossDamageSources.chesedAttack(owner), damage);
                 living.push(lookDir.x * recoil, 0.8, lookDir.z * recoil);
                 LightningParticleOptions lightning = LightningParticleOptions.builder()
-                        .color(lightningColor.getRed(), lightningColor.getGreen(), lightningColor.getBlue())
+                        .color(1, 1, 1)
                         .lifetime(10).quadSize(0.5F).randomRoll(true).build();
                 level.sendParticles(lightning, living.getX(), living.getY() + living.getBbHeight() / 2, living.getZ(), 5, 0.5, 0.5, 0.5, 0.0);
             }
@@ -243,26 +187,23 @@ public class SeraphimRailGunItem extends SwordItem implements QAModWeapon {
         net.minecraft.world.phys.BlockHitResult rayTrace = level.clip(new net.minecraft.world.level.ClipContext(
                 startPos, endPos, net.minecraft.world.level.ClipContext.Block.COLLIDER, net.minecraft.world.level.ClipContext.Fluid.NONE, owner));
         Vec3 hitPos = rayTrace.getLocation();
-        int stoneCount = isOvercharge ? 30 : 20;
-        summonStonesAfterRayAttack(level, stoneCount, lookDir.reverse(), hitPos, owner);
-        int destructionRadius = isOvercharge ? 7 : 5;
-        Vec3 stepVec = lookDir;
-        int steps = (int) maxRange;
-        Vec3 currentPos = startPos;
+        summonStonesAfterRayAttack(level, 30, lookDir.reverse(), hitPos, owner);
+        destroyBlocksInPath(level, startPos, lookDir, (int) maxRange, owner);
+    }
+
+    private void destroyBlocksInPath(ServerLevel level, Vec3 start, Vec3 dir, int steps, Player owner) {
+        int destructionRadius = 7;
+        Vec3 currentPos = start;
         for (int i = 0; i < steps; i++) {
-            currentPos = currentPos.add(stepVec);
+            currentPos = currentPos.add(dir);
             BlockPos centerPos = BlockPos.containing(currentPos);
             if (!level.getBlockState(centerPos).isAir()) {
-                for (int x = -destructionRadius; x <= destructionRadius; x++) {
-                    for (int y = -destructionRadius; y <= destructionRadius; y++) {
-                        for (int z = -destructionRadius; z <= destructionRadius; z++) {
-                            if (x * x + y * y + z * z <= destructionRadius * destructionRadius) {
-                                BlockPos targetPos = centerPos.offset(x, y, z);
-                                BlockState state = level.getBlockState(targetPos);
-                                if (!state.isAir() && state.getDestroySpeed(level, targetPos) >= 0 && state.getDestroySpeed(level, targetPos) < 100.0f) {
-                                    level.destroyBlock(targetPos, false, owner);
-                                }
-                            }
+                for (BlockPos pos : BlockPos.betweenClosed(centerPos.offset(-destructionRadius, -destructionRadius, -destructionRadius),
+                        centerPos.offset(destructionRadius, destructionRadius, destructionRadius))) {
+                    if (pos.distSqr(centerPos) <= destructionRadius * destructionRadius) {
+                        BlockState state = level.getBlockState(pos);
+                        if (!state.isAir() && state.getDestroySpeed(level, pos) >= 0 && state.getDestroySpeed(level, pos) < 100.0f) {
+                            level.destroyBlock(pos, false, owner);
                         }
                     }
                 }
@@ -275,7 +216,8 @@ public class SeraphimRailGunItem extends SwordItem implements QAModWeapon {
         float damage = getScaledDamage(owner, 1.5F);
         for (int i = 0; i < count; ++i) {
             BlockState state = level.random.nextFloat() > 0.5F ? Blocks.BLACKSTONE.defaultBlockState() : Blocks.SCULK.defaultBlockState();
-            Vector3f add = v.rotateAxis(((float) Math.PI * 2F) * level.random.nextFloat(), (float) direction.x, (float) direction.y, (float) direction.z, new Vector3f());
+            Vector3f add = new Vector3f(v);
+            add.rotateAxis(((float) Math.PI * 2F) * level.random.nextFloat(), (float) direction.x, (float) direction.y, (float) direction.z);
             float rd = level.random.nextFloat() * 0.5F;
             ChesedFallingBlock block = ChesedFallingBlock.summon(level, state, pos, damage);
             block.setDeltaMovement(direction.add((double) (add.x * rd * 2.0F), (double) (add.y * rd), (double) (add.z * rd * 2.0F)).normalize().multiply(0.5, 2.4 - rd, 0.5));
@@ -296,11 +238,11 @@ public class SeraphimRailGunItem extends SwordItem implements QAModWeapon {
         level.sendParticles(options, x, y, z, 0, dx, dy, dz, 1.0);
     }
 
-    private void playChargeCompleteSound(Level level, Player player, float pitch) {
-        level.playSound(null, player.getX(), player.getY(), player.getZ(),
-                SoundEvents.RESPAWN_ANCHOR_SET_SPAWN, SoundSource.PLAYERS, 1.0F, pitch * 2.0F);
-        level.playSound(null, player.getX(), player.getY(), player.getZ(),
-                BossSounds.CHESED_RAY_CHARGE.get(), SoundSource.PLAYERS, 1.0F, pitch);
+    private void spawnArcLightning(ServerLevel level, Player player) {
+        ArcLightningOptions arc = ArcLightningOptions.builder((ParticleType) BossParticles.ARC_LIGHTNING.get())
+                .end(player.getX() + (level.random.nextDouble() - 0.5), player.getY() + 1.2, player.getZ() + (level.random.nextDouble() - 0.5))
+                .lifetime(2).color(255, 100, 50).width(0.1F).build();
+        FDLibCalls.sendParticles(level, arc, player.position().add(0, 3, 0), 64.0D);
     }
 
     private void spawnBurstParticles(ServerLevel level, Player player, float r, float g, float b) {
@@ -316,12 +258,12 @@ public class SeraphimRailGunItem extends SwordItem implements QAModWeapon {
 
     @Override
     public int getUseDuration(ItemStack pStack, LivingEntity entity) {
-        return MAX_CHARGE_TIME;
+        return 72000;
     }
 
     @Override
     public UseAnim getUseAnimation(ItemStack pStack) {
-        return UseAnim.BOW;
+        return UseAnim.NONE;
     }
 
     @Override
@@ -329,8 +271,6 @@ public class SeraphimRailGunItem extends SwordItem implements QAModWeapon {
         super.appendHoverText(stack, tooltipContext, tooltip, flag);
         tooltip.add(Component.translatable("item.qliphoth_armaments.seraphim_railgun.lore").withStyle(ChatFormatting.GRAY, ChatFormatting.ITALIC));
         tooltip.add(Component.empty());
-        tooltip.add(Component.translatable("item.qliphoth_armaments.seraphim_railgun.charge_short").withStyle(ChatFormatting.YELLOW));
-        tooltip.add(Component.translatable("item.qliphoth_armaments.seraphim_railgun.charge_full").withStyle(ChatFormatting.AQUA));
         tooltip.add(Component.translatable("item.qliphoth_armaments.seraphim_railgun.charge_over").withStyle(ChatFormatting.RED, ChatFormatting.BOLD));
         if (Screen.hasShiftDown()) {
             tooltip.add(Component.empty());
@@ -340,7 +280,6 @@ public class SeraphimRailGunItem extends SwordItem implements QAModWeapon {
             );
             tooltip.add(Component.empty());
             tooltip.add(Component.translatable("item.qliphoth_armaments.seraphim_railgun.r_skill_3").withStyle(ChatFormatting.DARK_RED, ChatFormatting.ITALIC));
-
         } else {
             addPressShiftHint(tooltip);
         }

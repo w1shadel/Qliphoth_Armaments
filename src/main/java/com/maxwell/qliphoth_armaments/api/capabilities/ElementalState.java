@@ -9,10 +9,8 @@ import net.neoforged.neoforge.attachment.IAttachmentSerializer;
 import javax.annotation.Nullable;
 
 public class ElementalState implements IElementalState {
-
     private static final String TAG_ELEMENT = "element";
     private static final String TAG_EXPIRE_TICK = "expire_tick";
-
     private QAElements currentElement = null;
     private long expireTick = 0;
 
@@ -65,7 +63,6 @@ public class ElementalState implements IElementalState {
     }
 
     public static class Serializer implements IAttachmentSerializer<CompoundTag, IElementalState> {
-
         @Override
         public CompoundTag write(IElementalState state, HolderLookup.Provider provider) {
             return state.serializeNBT(provider);

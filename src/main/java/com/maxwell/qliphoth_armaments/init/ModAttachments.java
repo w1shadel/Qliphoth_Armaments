@@ -15,10 +15,8 @@ import net.neoforged.neoforge.registries.NeoForgeRegistries;
 import java.util.function.Supplier;
 
 public class ModAttachments {
-
     public static final DeferredRegister<AttachmentType<?>> ATTACHMENT_TYPES =
             DeferredRegister.create(NeoForgeRegistries.ATTACHMENT_TYPES, QA.MOD_ID);
-
     public static final DeferredHolder<AttachmentType<?>, AttachmentType<IElementalState>> ELEMENTAL_STATE =
             ATTACHMENT_TYPES.register("elemental_state",
                     () -> AttachmentType.<IElementalState>builder(ElementalState::new)
@@ -34,7 +32,6 @@ public class ModAttachments {
                             .build());
     public static final Supplier<AttachmentType<Long>> LAST_COMBAT_TIME = ATTACHMENT_TYPES.register("last_combat_time",
             () -> AttachmentType.builder(() -> 0L).serialize(Codec.LONG).copyOnDeath().build());
-
     public static final Supplier<AttachmentType<Integer>> SIN_REDUCTION_TIMER = ATTACHMENT_TYPES.register("sin_reduction_timer",
             () -> AttachmentType.builder(() -> 0).serialize(Codec.INT).copyOnDeath().build());
     public static final Supplier<AttachmentType<Integer>> SIN = ATTACHMENT_TYPES.register("sin",
@@ -43,7 +40,6 @@ public class ModAttachments {
                     .copyOnDeath()
                     .sync(ByteBufCodecs.VAR_INT)
                     .build());
-
     public static final Supplier<AttachmentType<Long>> LAST_DAMAGE_TIME = ATTACHMENT_TYPES.register("last_damage_time",
             () -> AttachmentType.builder(() -> 0L).serialize(Codec.LONG).copyOnDeath().build());
     public static final Supplier<AttachmentType<Long>> LAST_EAT_TIME = ATTACHMENT_TYPES.register("last_eat_time",

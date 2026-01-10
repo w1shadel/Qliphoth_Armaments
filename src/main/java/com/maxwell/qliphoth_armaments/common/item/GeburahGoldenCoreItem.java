@@ -31,9 +31,7 @@ import java.util.List;
 import java.util.Random;
 
 public class GeburahGoldenCoreItem extends SwordItem implements QAModWeapon {
-
     private final Random random = new Random();
-
     private final float baseChainDamage;
 
     public GeburahGoldenCoreItem(Tier tier, float attackDamage, float attackSpeed, Properties properties) {
@@ -166,19 +164,15 @@ public class GeburahGoldenCoreItem extends SwordItem implements QAModWeapon {
 
     @Override
     public void appendHoverText(ItemStack stack, TooltipContext context, List<Component> tooltipComponents, TooltipFlag tooltipFlag) {
-        // フレーバーテキスト
         tooltipComponents.add(Component.translatable("tooltip.qliphoth_armaments.geburah_golden_core.lore").withStyle(ChatFormatting.DARK_RED, ChatFormatting.ITALIC));
         tooltipComponents.add(Component.empty());
         if (net.minecraft.client.gui.screens.Screen.hasShiftDown()) {
-            // パッシブ: 直接攻撃無効と鎖の性質
             addPassiveSkill(tooltipComponents,
                     "tooltip.qliphoth_armaments.geburah_golden_core.passive.authority",
                     "tooltip.qliphoth_armaments.geburah_golden_core.passive.authority.desc");
-            // 左クリック: 空間の鎖
             addSkillComponent(tooltipComponents,
                     "tooltip.qliphoth_armaments.geburah_golden_core.active.portal_chain", ChatFormatting.GOLD,
                     "tooltip.qliphoth_armaments.geburah_golden_core.active.portal_chain.desc");
-            // 右クリック長押し: 至高の権能
             addLongRightClickSkill(tooltipComponents,
                     "tooltip.qliphoth_armaments.geburah_golden_core.active.ring_of_sins",
                     "tooltip.qliphoth_armaments.geburah_golden_core.active.ring_of_sins.desc1",

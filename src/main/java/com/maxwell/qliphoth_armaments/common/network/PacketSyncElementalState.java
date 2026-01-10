@@ -15,10 +15,8 @@ import net.minecraft.world.entity.LivingEntity;
 import net.neoforged.neoforge.network.handling.IPayloadContext;
 
 public record PacketSyncElementalState(int entityId, int elementOrdinal, int duration) implements CustomPacketPayload {
-
     public static final CustomPacketPayload.Type<PacketSyncElementalState> TYPE =
             new CustomPacketPayload.Type<>(ResourceLocation.fromNamespaceAndPath(QA.MOD_ID, "sync_elemental_state"));
-
     public static final StreamCodec<ByteBuf, PacketSyncElementalState> STREAM_CODEC = StreamCodec.composite(
             ByteBufCodecs.VAR_INT, PacketSyncElementalState::entityId,
             ByteBufCodecs.VAR_INT, PacketSyncElementalState::elementOrdinal,
@@ -49,7 +47,6 @@ public record PacketSyncElementalState(int entityId, int elementOrdinal, int dur
                             QAElements element = QAElements.values()[msg.elementOrdinal];
                             state.setElement(element, msg.duration, level.getGameTime());
                         }
-
                     }
                 }
             } catch (Exception e) {

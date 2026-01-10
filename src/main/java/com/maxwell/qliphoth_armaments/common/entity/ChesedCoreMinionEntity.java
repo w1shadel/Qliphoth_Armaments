@@ -48,14 +48,12 @@ import java.util.UUID;
 
 public class ChesedCoreMinionEntity extends FDMob implements ChesedBossBuddy {
     private int passiveAttackTimer = 0;
-
     private static final EntityDataAccessor<Optional<UUID>> DATA_OWNER_ID =
             SynchedEntityData.defineId(ChesedCoreMinionEntity.class, EntityDataSerializers.OPTIONAL_UUID);
     private static final EntityDataAccessor<Integer> DATA_FORMATION_SLOT =
             SynchedEntityData.defineId(ChesedCoreMinionEntity.class, EntityDataSerializers.INT);
     private static final EntityDataAccessor<Boolean> DATA_IS_AWAKENED =
             SynchedEntityData.defineId(ChesedCoreMinionEntity.class, EntityDataSerializers.BOOLEAN);
-
     private String currentCommand = "";
     private int crossfireTimer = 0;
     private boolean isBusy = false;

@@ -10,9 +10,6 @@ import net.minecraft.world.effect.MobEffects;
 import net.minecraft.world.entity.player.Player;
 
 public class RestlessSin extends PlayerSin {
-
-    // 罰則が下るまでの静止時間 (例: 1.5秒 = 30tick)
-    // 変異後の罪なので、通常の罪（2秒）より少し厳しめに設定
     private static final int STILL_LIMIT = 30;
 
     @Override

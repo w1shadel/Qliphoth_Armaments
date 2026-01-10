@@ -1,8 +1,5 @@
 package com.maxwell.qliphoth_armaments.common.entity;
 
-import com.maxwell.qliphoth_armaments.api.ElementalReactionManager;
-import com.maxwell.qliphoth_armaments.api.QAElements;
-import com.maxwell.qliphoth_armaments.init.ModEntities;
 import com.finderfeed.fdbosses.client.BossParticles;
 import com.finderfeed.fdbosses.client.particles.arc_lightning.ArcLightningOptions;
 import com.finderfeed.fdbosses.content.entities.chesed_boss.ChesedBossBuddy;
@@ -16,6 +13,9 @@ import com.finderfeed.fdlib.systems.bedrock.animations.animation_system.entity.F
 import com.finderfeed.fdlib.util.ProjectileMovementPath;
 import com.finderfeed.fdlib.util.client.particles.ball_particle.BallParticleOptions;
 import com.finderfeed.fdlib.util.client.particles.lightning_particle.LightningParticleOptions;
+import com.maxwell.qliphoth_armaments.api.ElementalReactionManager;
+import com.maxwell.qliphoth_armaments.api.QAElements;
+import com.maxwell.qliphoth_armaments.init.ModEntities;
 import net.minecraft.core.particles.ParticleType;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.server.level.ServerLevel;
@@ -35,12 +35,12 @@ import java.util.List;
 import java.util.UUID;
 
 public class MinionElectricSphereEntity extends FDLivingEntity implements AutoSerializable, ChesedBossBuddy {
-
     private ProjectileMovementPath path;
     private float damage;
     @Nullable
     private UUID ownerUUID;
     private static final int MAX_LIFESPAN_TICKS = 200;
+
     @Nullable
     @Override
     public LivingEntity getKillCredit() {
@@ -90,37 +90,29 @@ public class MinionElectricSphereEntity extends FDLivingEntity implements AutoSe
     public void tick() {
         this.noPhysics = true;
         super.tick();
-
         if (!this.level().isClientSide) {
-
             if (this.path == null) {
-                this.discard(); 
-                return;         
+                this.discard();
+                return;
             }
-
             if (this.tickCount > MAX_LIFESPAN_TICKS) {
                 this.explode();
                 this.discard();
                 return;
             }
-
             if (this.path.isFinished()) {
                 this.explode();
                 this.discard();
                 return;
             }
-
             this.path.tick(this);
             this.detectEntitiesAndExplode();
-
-        }
-
-        else {
+        } else {
             this.idleParticles();
-
             this.getAnimationSystem().startAnimation("IDLE", AnimationTicker.builder((Animation) BossAnims.ELECTRIC_ORB_IDLE.get()).build());
         }
     }
+
     private void idleParticles() {
         if (this.tickCount >= 10) {
             for (int i = 0; i < 1; ++i) {
@@ -130,7 +122,6 @@ public class MinionElectricSphereEntity extends FDLivingEntity implements AutoSe
                 Vec3 sp = this.getDeltaMovement();
                 this.level().addParticle(ArcLightningOptions.builder((ParticleType) BossParticles.ARC_LIGHTNING.get()).end(p2.x, p2.y, p2.z).endSpeed(sp).lifetime(2).color(1 + this.random.nextInt(40), 183 + this.random.nextInt(60), 165 + this.random.nextInt(60)).lightningSpread(0.25F).width(0.1F).segments(6).circleOffset(0.25F).build(), true, p1.x, p1.y, p1.z, sp.x, sp.y, sp.z);
             }
-
         }
     }
 

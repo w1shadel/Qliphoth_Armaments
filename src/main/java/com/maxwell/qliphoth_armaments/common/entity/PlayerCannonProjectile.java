@@ -1,13 +1,13 @@
 package com.maxwell.qliphoth_armaments.common.entity;
 
-import com.maxwell.qliphoth_armaments.api.ElementalReactionManager;
-import com.maxwell.qliphoth_armaments.api.QAElements;
 import com.finderfeed.fdbosses.BossUtil;
 import com.finderfeed.fdbosses.content.entities.malkuth_boss.MalkuthAttackType;
 import com.finderfeed.fdbosses.content.entities.malkuth_boss.MalkuthDamageSource;
 import com.finderfeed.fdbosses.content.entities.malkuth_boss.malkuth_cannon.MalkuthCannonProjectile;
 import com.finderfeed.fdbosses.content.entities.malkuth_boss.malkuth_earthquake.MalkuthEarthquake;
 import com.finderfeed.fdbosses.init.BossEntities;
+import com.maxwell.qliphoth_armaments.api.ElementalReactionManager;
+import com.maxwell.qliphoth_armaments.api.QAElements;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.EntityType;
@@ -20,7 +20,6 @@ import net.minecraft.world.phys.EntityHitResult;
 import net.minecraft.world.phys.Vec3;
 
 public class PlayerCannonProjectile extends MalkuthCannonProjectile {
-
     public PlayerCannonProjectile(EntityType<? extends AbstractHurtingProjectile> type, Level level) {
         super(type, level);
     }
@@ -109,7 +108,6 @@ public class PlayerCannonProjectile extends MalkuthCannonProjectile {
                         damage * (elementType == QAElements.FIRE ? 3.0F : 1.5F),
                         false
                 );
-
             } else {
                 MalkuthEarthquake.summon(level, MalkuthAttackType.ICE, pos, dirAndLen, duration, arcAngle, 0.0F);
                 MalkuthPlayerAttackLogic.summon(level, (Player) this.getOwner(), pos, direction, QAElements.ICE, damage * 1.5F, false);
@@ -119,7 +117,6 @@ public class PlayerCannonProjectile extends MalkuthCannonProjectile {
                 target.hurt(malkuthSource, damage);
                 target.push(0, 1.2, 0);
             }
-
         } else {
             for (LivingEntity target : level.getEntitiesOfClass(LivingEntity.class, this.getBoundingBox().inflate(3.0).move(pos.subtract(this.position())))) {
                 if (target == this.getOwner()) continue;

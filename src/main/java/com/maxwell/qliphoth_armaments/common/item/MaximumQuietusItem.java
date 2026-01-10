@@ -40,10 +40,8 @@ import java.awt.*;
 import java.util.List;
 
 public class MaximumQuietusItem extends SwordItem implements QAModWeapon {
-
     private static final int CHARGE_LV1 = 10;
     private static final int CHARGE_LV2 = 25;
-
     private static final float AWAKENED_MELEE_PROC_MULTIPLIER = 3.5F;
     private static final float CHARGED_SHOT_MULTIPLIER = 3.5F;
     private static final float NORMAL_SHOT_MULTIPLIER = 1.8F;
@@ -206,7 +204,6 @@ public class MaximumQuietusItem extends SwordItem implements QAModWeapon {
                 shootUltimate((ServerLevel) level, player, elementType,
                         getScaledDamage(player, ULTIMATE_SHOT_MULTIPLIER));
                 player.getCooldowns().addCooldown(this, 40);
-
             } else {
                 if (usedTicks >= CHARGE_LV2) {
                     shootProjectile((ServerLevel) level, player, elementType, 2.5F,
@@ -344,5 +341,4 @@ public class MaximumQuietusItem extends SwordItem implements QAModWeapon {
             addPressShiftHint(tooltip);
         }
     }
-
 }

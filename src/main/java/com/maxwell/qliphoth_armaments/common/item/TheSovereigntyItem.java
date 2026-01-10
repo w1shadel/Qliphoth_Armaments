@@ -47,7 +47,6 @@ import java.util.List;
 
 @EventBusSubscriber(modid = QA.MOD_ID, bus = EventBusSubscriber.Bus.GAME)
 public class TheSovereigntyItem extends SwordItem implements QAModWeapon {
-
     public TheSovereigntyItem(Tier tier, float attackDamage, float attackSpeed, Properties properties) {
         super(tier, properties.attributes(SwordItem.createAttributes(tier, (int) attackDamage, attackSpeed)));
     }

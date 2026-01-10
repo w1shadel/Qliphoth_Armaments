@@ -7,7 +7,6 @@ import net.minecraft.nbt.CompoundTag;
 import javax.annotation.Nullable;
 
 public interface IElementalState {
-
     @Nullable
     QAElements getElement(long currentTime);
 

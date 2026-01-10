@@ -47,7 +47,6 @@ import java.util.Random;
 
 @EventBusSubscriber(modid = QA.MOD_ID, bus = EventBusSubscriber.Bus.GAME)
 public class SinManager {
-
     private static final Random random = new Random();
     private static final int SWITCH_INTERVAL = 300;
     private static final double EFFECT_RADIUS = 24.0;

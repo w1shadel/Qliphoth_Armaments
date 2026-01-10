@@ -11,7 +11,6 @@ import net.neoforged.neoforge.registries.DeferredRegister;
 public class ModDataComponents {
     public static final DeferredRegister<DataComponentType<?>> DATA_COMPONENT_TYPES =
             DeferredRegister.create(BuiltInRegistries.DATA_COMPONENT_TYPE, QA.MOD_ID);
-
     public static final DeferredHolder<DataComponentType<?>, DataComponentType<Integer>> MODE =
             DATA_COMPONENT_TYPES.register("mode", () -> DataComponentType.<Integer>builder()
                     .persistent(Codec.INT)
