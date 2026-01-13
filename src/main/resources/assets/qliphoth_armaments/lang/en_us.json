@@ -59,9 +59,9 @@
   "item.qliphoth_armaments.seraphim_railgun.lore": "A fusion of tuning fork and lightning technologies.",
   "item.qliphoth_armaments.seraphim_railgun.charge_short": "Short Charge: Lightning Dash",
   "item.qliphoth_armaments.seraphim_railgun.charge_full": "Full Charge: Seraphim Railgun",
-  "item.qliphoth_armaments.seraphim_railgun.charge_over": "Overcharge: LIMIT BREAKER",
+  "item.qliphoth_armaments.seraphim_railgun.charge_over": "Power Core Status: Abnormal",
   "item.qliphoth_armaments.seraphim_railgun.r_skill_1": "Ability: Swan Song",
-  "item.qliphoth_armaments.seraphim_railgun.r_skill_2": "After a long charge, fires a devastating laser. Can be overcharged by holding the charge.",
+  "item.qliphoth_armaments.seraphim_railgun.r_skill_2": "After a long charge, it fires a devastating laser beam forward. Because it is constantly overcharged, it has strong recoil and causes vision to shake.",
   "item.qliphoth_armaments.seraphim_railgun.r_skill_3": "\"Handle with care! Destroys terrain spectacularly.\" - From a mysterious note found on the back of the railgun.",
   "item.qliphoth_armaments.fire_malkuth_warriors_battle_axe": "Flame Battle Axe",
   "item.qliphoth_armaments.ice_malkuth_warriors_battle_axe": "Ice Battle Axe",
@@ -102,7 +102,5 @@
   "item.qliphoth_armaments.maximum_quietus.sr_skill_1": "Crouch + Right Click: Flame/Frost Bolt",
   "item.qliphoth_armaments.maximum_quietus.sr_skill_2": "Fires a bolt corresponding to the current element. Damage increases the longer you aim.",
   "item.qliphoth_armaments.fuse": "§8Fuse with %s to unleash its true power.",
-  "item.qliphoth_armaments.maximum_quietus.fuse.lore": "§b[Calamity of the Kingdom]",
-  "item.qliphoth_armaments.fuse.empty": "Fuse with %s to unleash its true power.",
-  "item.qliphoth_armaments.fuse.active": "Fused with %s."
+  "item.qliphoth_armaments.maximum_quietus.fuse.lore": "§b[Calamity of the Kingdom]"
 }

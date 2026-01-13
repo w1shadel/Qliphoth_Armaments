@@ -143,7 +143,7 @@ public class SeraphimRailGunItem extends SwordItem implements QAModWeapon, Anima
         Vec3 lookDir = owner.getLookAngle().normalize();
         double maxRange = 350.0D;
         Vec3 endPos = startPos.add(lookDir.scale(maxRange));
-        float width = 35.0F;
+        float width = 13.0F;
         float r = 1.0F;
         float g = 0.4F;
         float b = 0.4F;
@@ -157,7 +157,7 @@ public class SeraphimRailGunItem extends SwordItem implements QAModWeapon, Anima
         FDLibCalls.sendParticles(level, options, startPos, 256.0D);
         level.playSound(null, owner.getX(), owner.getY(), owner.getZ(),
                 BossSounds.CHESED_FINAL_ATTACK_RAY.get(), SoundSource.PLAYERS, 3.0F, 0.6F);
-        ImpactFrame baseFrame = new ImpactFrame(5.0F, 0.2F, 20, false);
+        ImpactFrame baseFrame = new ImpactFrame(1.0F, 0.05F, 10, true);
         FDLibCalls.sendImpactFrames(level, owner.position(), 256.0F, baseFrame);
         PositionedScreenShakePacket.send(level,
                 FDShakeData.builder().frequency(40.0F).amplitude(5.5F).inTime(0).stayTime(10).outTime(20).build(),
