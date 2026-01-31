@@ -47,18 +47,19 @@ import java.util.List;
 
 @Mod.EventBusSubscriber(modid = QA.MOD_ID, bus = Mod.EventBusSubscriber.Bus.FORGE)
 public class TheSovereigntyItem extends SwordItem implements QAModWeapon {
-
     private static final String TAG_MODE = "CurrentElement";
     private static final String TAG_SHOCKWAVE_HIT = "SovereigntyShockwave";
 
-    public TheSovereigntyItem(Tier pTier, int pAttackDamageModifier, float pAttackSpeedModifier, Properties pProperties) {
+    public TheSovereigntyItem(Tier pTier, int pAttackDamageModifier, float pAttackSpeedModifier,
+                              Properties pProperties) {
         super(pTier, pAttackDamageModifier, pAttackSpeedModifier, pProperties);
     }
 
     @SubscribeEvent
     public static void onAttackEntity(AttackEntityEvent event) {
         Player player = event.getEntity();
-        if (player.level().isClientSide()) return;
+        if (player.level().isClientSide())
+            return;
         ItemStack stack = player.getMainHandItem();
         if (stack.getItem() instanceof TheSovereigntyItem swordItem) {
             if (player.getAttackStrengthScale(0.5F) < 1.0F) {
@@ -86,7 +87,8 @@ public class TheSovereigntyItem extends SwordItem implements QAModWeapon {
     private void performShockwaveAttack(ItemStack stack, Player player) {
         ServerLevel level = (ServerLevel) player.level();
         QAElements currentElement = getElementFromStack(stack);
-        MalkuthAttackType visualType = (currentElement == QAElements.FIRE) ? MalkuthAttackType.FIRE : MalkuthAttackType.ICE;
+        MalkuthAttackType visualType = (currentElement == QAElements.FIRE) ? MalkuthAttackType.FIRE
+                : MalkuthAttackType.ICE;
         double playerAttackDamage = player.getAttributeValue(Attributes.ATTACK_DAMAGE);
         float finalDamage = 15.0F + (float) playerAttackDamage;
         Vec3 lookDir = player.getLookAngle().multiply(1.2, 0, 1.2).normalize();
@@ -105,7 +107,8 @@ public class TheSovereigntyItem extends SwordItem implements QAModWeapon {
                 continue;
             }
             Vec3 toTargetHorizontal = toTarget.multiply(1, 0, 1).normalize();
-            if (toTargetHorizontal.lengthSqr() == 0) continue;
+            if (toTargetHorizontal.lengthSqr() == 0)
+                continue;
             double dot = lookDir.dot(toTargetHorizontal);
             if (dot < minDot) {
                 continue;
@@ -115,7 +118,8 @@ public class TheSovereigntyItem extends SwordItem implements QAModWeapon {
             targetInRange.hurt(player.damageSources().playerAttack(player), finalDamage);
         }
         Vec3 dir = player.getLookAngle().multiply(1, 0, 1).normalize();
-        if (dir.lengthSqr() < 0.01) dir = player.getForward().multiply(1, 0, 1).normalize();
+        if (dir.lengthSqr() < 0.01)
+            dir = player.getForward().multiply(1, 0, 1).normalize();
         Vec3 startPos = player.position().add(dir.scale(1.5));
         Vec3 visualEnd = dir.scale(12.0);
         summonStableMalkuthEarthquake(level, visualType, startPos, visualEnd, 15, (float) Math.PI / 4.0F, 0.0F);
@@ -150,7 +154,8 @@ public class TheSovereigntyItem extends SwordItem implements QAModWeapon {
                 QAElements currentElement = getElementFromStack(stack);
                 double radius = 6.0D;
                 AABB area = player.getBoundingBox().inflate(radius, 2.0D, radius);
-                List<LivingEntity> targets = level.getEntitiesOfClass(LivingEntity.class, area, e -> e != player && !player.isAlliedTo(e) && e instanceof Monster);
+                List<LivingEntity> targets = level.getEntitiesOfClass(LivingEntity.class, area,
+                        e -> e != player && !player.isAlliedTo(e) && e instanceof Monster);
                 for (LivingEntity target : targets) {
                     if (currentElement == QAElements.FIRE) {
                         target.setSecondsOnFire(3);
@@ -175,21 +180,25 @@ public class TheSovereigntyItem extends SwordItem implements QAModWeapon {
             Vec3 lookVec = player.getLookAngle();
             Vec3 traceEnd = eyePos.add(lookVec.scale(reach));
             AABB searchBox = player.getBoundingBox().expandTowards(lookVec.scale(reach)).inflate(1.0D);
-            EntityHitResult result = ProjectileUtil.getEntityHitResult(player, eyePos, traceEnd, searchBox, e -> e instanceof LivingEntity && !e.isSpectator(), reach * reach);
+            EntityHitResult result = ProjectileUtil.getEntityHitResult(player, eyePos, traceEnd, searchBox,
+                    e -> e instanceof LivingEntity && !e.isSpectator(), reach * reach);
             if (result != null && result.getEntity() instanceof LivingEntity target) {
                 PlayerChainEntity.summon(level, player, currentElement, target, 10, 5);
-                level.playSound(null, player.getX(), player.getY(), player.getZ(), (SoundEvent) BossSounds.MALKUTH_CHAIN_PULL.get(), SoundSource.PLAYERS, 1.5F, 1.0F);
+                level.playSound(null, player.getX(), player.getY(), player.getZ(),
+                        (SoundEvent) BossSounds.MALKUTH_CHAIN_PULL.get(), SoundSource.PLAYERS, 1.5F, 1.0F);
                 player.getCooldowns().addCooldown(this, 30);
                 return InteractionResultHolder.success(stack);
             } else {
-                level.playSound(null, player.getX(), player.getY(), player.getZ(), SoundEvents.CHAIN_HIT, SoundSource.PLAYERS, 1.0F, 0.5F);
+                level.playSound(null, player.getX(), player.getY(), player.getZ(), SoundEvents.CHAIN_HIT,
+                        SoundSource.PLAYERS, 1.0F, 0.5F);
                 return InteractionResultHolder.fail(stack);
             }
         }
         return InteractionResultHolder.consume(stack);
     }
 
-    private void summonStableMalkuthEarthquake(ServerLevel level, MalkuthAttackType type, Vec3 start, Vec3 direction, int lifetime, float arcAngle, float damage) {
+    private void summonStableMalkuthEarthquake(ServerLevel level, MalkuthAttackType type, Vec3 start, Vec3 direction,
+                                               int lifetime, float arcAngle, float damage) {
         try {
             MalkuthEarthquake.summon(level, type, start, direction, lifetime, arcAngle, damage);
         } catch (Exception e) {
@@ -202,7 +211,8 @@ public class TheSovereigntyItem extends SwordItem implements QAModWeapon {
         int newMode = (currentMode == 0) ? 1 : 0;
         tag.putInt(TAG_MODE, newMode);
         float pitch = (newMode == 0) ? 1.0F : 1.2F;
-        player.level().playSound(null, player.getX(), player.getY(), player.getZ(), (SoundEvent) BossSounds.MALKUTH_HIT.get(), SoundSource.PLAYERS, 0.5F, pitch);
+        player.level().playSound(null, player.getX(), player.getY(), player.getZ(),
+                (SoundEvent) BossSounds.MALKUTH_HIT.get(), SoundSource.PLAYERS, 0.5F, pitch);
     }
 
     private QAElements getElementFromStack(ItemStack stack) {
@@ -214,14 +224,20 @@ public class TheSovereigntyItem extends SwordItem implements QAModWeapon {
     public void appendHoverText(ItemStack stack, @Nullable Level level, List<Component> tooltip, TooltipFlag flag) {
         super.appendHoverText(stack, level, tooltip, flag);
         QAElements element = getElementFromStack(stack);
-        Component elementText = (element == QAElements.FIRE) ? Component.literal("FIRE").withStyle(ChatFormatting.GOLD, ChatFormatting.BOLD) : Component.literal("ICE").withStyle(ChatFormatting.AQUA, ChatFormatting.BOLD);
+        Component elementText = (element == QAElements.FIRE)
+                ? Component.literal("FIRE").withStyle(ChatFormatting.GOLD, ChatFormatting.BOLD)
+                : Component.literal("ICE").withStyle(ChatFormatting.AQUA, ChatFormatting.BOLD);
         tooltip.add(Component.literal("Current Authority: ").append(elementText));
         tooltip.add(Component.empty());
-        tooltip.add(Component.translatable("item.qliphoth_armaments.the_sovereignty.loar").withStyle(ChatFormatting.GRAY, ChatFormatting.ITALIC));
+        tooltip.add(Component.translatable("item.qliphoth_armaments.the_sovereignty.loar")
+                .withStyle(ChatFormatting.GRAY, ChatFormatting.ITALIC));
         tooltip.add(Component.empty());
-        tooltip.add(Component.translatable("item.qliphoth_armaments.the_sovereignty.passive").withStyle(ChatFormatting.RED));
-        tooltip.add(Component.translatable("item.qliphoth_armaments.the_sovereignty.r_skill_1").withStyle(ChatFormatting.GREEN));
-        tooltip.add(Component.translatable("item.qliphoth_armaments.the_sovereignty.r_skill_2").withStyle(ChatFormatting.GREEN));
+        tooltip.add(Component.translatable("item.qliphoth_armaments.the_sovereignty.passive")
+                .withStyle(ChatFormatting.RED));
+        tooltip.add(Component.translatable("item.qliphoth_armaments.the_sovereignty.r_skill_1")
+                .withStyle(ChatFormatting.GREEN));
+        tooltip.add(Component.translatable("item.qliphoth_armaments.the_sovereignty.r_skill_2")
+                .withStyle(ChatFormatting.GREEN));
         tooltip.add(Component.empty());
     }
 
@@ -239,5 +255,28 @@ public class TheSovereigntyItem extends SwordItem implements QAModWeapon {
     @Override
     public int getBarWidth(ItemStack stack) {
         return 13;
+    }
+
+    @Override
+    public void initializeClient(
+            java.util.function.Consumer<net.minecraftforge.client.extensions.common.IClientItemExtensions> consumer) {
+        consumer.accept(new com.maxwell.qliphoth_armaments.client.QliphothItemRenderer(
+                com.maxwell.qliphoth_armaments.init.ModItems.THE_SOVEREIGNTY,
+                com.maxwell.qliphoth_armaments.init.ModModels.THE_SOVEREIGNTY,
+                com.maxwell.qliphoth_armaments.QA.MOD_ID,
+                "the_sovereignty/the_sovereignty")
+                .setEmissive("the_sovereignty/the_sovereignty_emissive")
+                .setBaseTransparent()
+                .setTextureAnimation(10, 3,
+                        com.maxwell.qliphoth_armaments.client.QliphothItemRenderer.TextureAnimationMode.PING_PONG)
+                .setScale(net.minecraft.world.item.ItemDisplayContext.FIRST_PERSON_RIGHT_HAND, 1.0f)
+                .setVanillaTransform(net.minecraft.world.item.ItemDisplayContext.FIRST_PERSON_RIGHT_HAND,
+                        0f, 0.4f, 0f)
+                .setThirdPersonRight(
+                        0.0f, 0.3f, 0.0f,
+                        0.0f, 0.0f, 0.0f)
+                .setPulsatingGlow(0.2f, 0.4f)
+                .setGui(0.3f, 0.0f, 0.0f, 0.6f)
+                .createExtensions());
     }
 }

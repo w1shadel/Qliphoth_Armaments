@@ -3,7 +3,9 @@
   "package": "com.maxwell.qliphoth_armaments.mixin",
   "compatibilityLevel": "JAVA_17",
   "mixins": [
-    "BossEventsMixin"
+    "BossEventsMixin",
+    "GeburahSinsOverlayMixin",
+    "PlayerSinsHandlerMixin"
   ],
   "injectors": {
     "defaultRequire": 1

@@ -1,0 +1,25 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "C C",
+    "BEB",
+    "JBJ"
+  ],
+  "key": {
+    "C": {
+      "item": "fdbosses:justicestone_column"
+    },
+    "B": {
+      "item": "fdbosses:justicestone_bricks"
+    },
+    "J": {
+      "item": "qliphoth_armaments:judgemented_netherite"
+    },
+    "E": {
+      "item": "fdbosses:justice_core"
+    }
+  },
+  "result": {
+    "item": "qliphoth_armaments:geburah_chestplate"
+  }
+}

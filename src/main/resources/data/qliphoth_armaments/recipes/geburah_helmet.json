@@ -1,0 +1,22 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "PPP",
+    "PJP",
+    "f f"
+  ],
+  "key": {
+    "P": {
+      "item": "fdbosses:polished_justicestone"
+    },
+    "J": {
+      "item": "qliphoth_armaments:judgemented_netherite"
+    },
+    "f": {
+      "item": "qliphoth_armaments:justices_piece"
+    }
+  },
+  "result": {
+    "item": "qliphoth_armaments:geburah_helmet"
+  }
+}

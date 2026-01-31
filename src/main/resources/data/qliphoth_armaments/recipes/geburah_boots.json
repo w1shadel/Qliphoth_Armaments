@@ -1,0 +1,22 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "J J",
+    "f f",
+    "S S"
+  ],
+  "key": {
+    "J": {
+      "item": "qliphoth_armaments:judgemented_netherite"
+    },
+    "f": {
+      "item": "qliphoth_armaments:justices_piece"
+    },
+    "S": {
+      "item": "fdbosses:justicestone_bricks_slab"
+    }
+  },
+  "result": {
+    "item": "qliphoth_armaments:geburah_boots"
+  }
+}

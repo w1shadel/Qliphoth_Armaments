@@ -1,0 +1,13 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "category": "misc",
+  "ingredients": [
+    {
+      "item": "fdbosses:justicestone_bricks"
+    }
+  ],
+  "result": {
+    "count": 9,
+    "item": "qliphoth_armaments:justices_piece"
+  }
+}

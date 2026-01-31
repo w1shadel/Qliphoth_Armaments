@@ -3,10 +3,7 @@ package com.maxwell.qliphoth_armaments;
 import com.maxwell.qliphoth_armaments.common.config.QAConfig;
 import com.maxwell.qliphoth_armaments.common.entity.ChesedCoreMinionEntity;
 import com.maxwell.qliphoth_armaments.common.network.PacketHandler;
-import com.maxwell.qliphoth_armaments.init.ModCreativeTabs;
-import com.maxwell.qliphoth_armaments.init.ModEntities;
-import com.maxwell.qliphoth_armaments.init.ModItems;
-import com.maxwell.qliphoth_armaments.init.ModRecipes;
+import com.maxwell.qliphoth_armaments.init.*;
 import net.minecraftforge.event.entity.EntityAttributeCreationEvent;
 import net.minecraftforge.eventbus.api.IEventBus;
 import net.minecraftforge.fml.ModLoadingContext;
@@ -16,7 +13,6 @@ import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
 
 @Mod(QA.MOD_ID)
 public class QA {
-
     public static final String MOD_ID = "qliphoth_armaments";
 
     public QA(FMLJavaModLoadingContext context) {
@@ -24,6 +20,9 @@ public class QA {
         PacketHandler.register();
         ModItems.ITEMS.register(modEventBus);
         ModEntities.ENTITIES.register(modEventBus);
+        ModAnims.ANIMATIONS.register(modEventBus);
+        ModModels.INFOS.register(modEventBus);
+        ModSins.SINS.register(modEventBus);
         ModRecipes.register(modEventBus);
         ModCreativeTabs.TABS.register(modEventBus);
         modEventBus.addListener(this::addEntityAttributes);
@@ -33,5 +32,6 @@ public class QA {
     private void addEntityAttributes(EntityAttributeCreationEvent event) {
         event.put(ModEntities.CHESED_CORE_MINION.get(), ChesedCoreMinionEntity.createAttributes().build());
         event.put(ModEntities.MINION_ELECTRIC_SPHERE.get(), ChesedCoreMinionEntity.createAttributes().build());
+        event.put(ModEntities.PLAYER_CHANE.get(), ChesedCoreMinionEntity.createAttributes().build());
     }
 }

@@ -29,7 +29,6 @@ import java.util.Optional;
 
 @Mod.EventBusSubscriber(modid = QA.MOD_ID, bus = Mod.EventBusSubscriber.Bus.FORGE)
 public class CommonEvents {
-
     @SubscribeEvent
     public static void onLivingChangeTarget(LivingChangeTargetEvent event) {
         LivingEntity newTarget = event.getNewTarget();
@@ -45,7 +44,8 @@ public class CommonEvents {
 
     @SubscribeEvent
     public static void onRightClickBlock(PlayerInteractEvent.RightClickBlock event) {
-        if (!ModRecipes.CAULDRON_TYPE.isPresent()) return;
+        if (!ModRecipes.CAULDRON_TYPE.isPresent())
+            return;
         Level level = event.getLevel();
         BlockPos pos = event.getPos();
         BlockState state = level.getBlockState(pos);
@@ -70,7 +70,8 @@ public class CommonEvents {
                     }
                     LayeredCauldronBlock.lowerFillLevel(state, level, pos);
                     level.playSound(null, pos, SoundEvents.FIRE_EXTINGUISH, SoundSource.BLOCKS, 1.0F, 1.0F);
-                    ((net.minecraft.server.level.ServerLevel) level).sendParticles(net.minecraft.core.particles.ParticleTypes.CLOUD,
+                    ((net.minecraft.server.level.ServerLevel) level).sendParticles(
+                            net.minecraft.core.particles.ParticleTypes.CLOUD,
                             pos.getX() + 0.5, pos.getY() + 1.0, pos.getZ() + 0.5,
                             10, 0.2, 0.2, 0.2, 0.1);
                 }
@@ -82,7 +83,6 @@ public class CommonEvents {
 
     @SubscribeEvent
     public static void onLootTableLoad(LootTableLoadEvent event) {
-        // ターゲットのルートテーブルかIDで確認
         if (event.getName().toString().equals("fdbosses:entities/malkuth")) {
             LootPool pool = LootPool.lootPool()
                     .add(LootItem.lootTableItem(ModItems.THE_SOVEREIGNTY.get()))

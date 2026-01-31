@@ -22,6 +22,10 @@ public class PacketHandler {
                 .decoder(PacketSyncElementalState::decode)
                 .consumerMainThread(PacketSyncElementalState::handle)
                 .add();
-
+        INSTANCE.messageBuilder(PacketSyncMobSin.class, id++, NetworkDirection.PLAY_TO_CLIENT)
+                .encoder(PacketSyncMobSin::toBytes)
+                .decoder(PacketSyncMobSin::new)
+                .consumerMainThread(PacketSyncMobSin::handle)
+                .add();
     }
 }
