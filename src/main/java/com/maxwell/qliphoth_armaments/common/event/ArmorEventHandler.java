@@ -25,21 +25,17 @@ public class ArmorEventHandler {
     @SubscribeEvent
     public static void onDamagePre(LivingDamageEvent event) {
         if (!(event.getEntity() instanceof ServerPlayer player)) return;
-        // 1. 罪による即死ダメージ(Float.MAX_VALUE)が来た場合の判定
         if (event.getSource().getMsgId().equals("geburah_sinned_too_much")) {
             if (hasFullArmor(player)) {
                 ItemStack chest = player.getItemBySlot(EquipmentSlot.CHEST);
                 if (GeburahArmorItem.hasJusticeCore(chest)) {
-                    // コアがあるので、この即死ダメージ自体をキャンセルする
                     event.setCanceled(true);
-                    // コアを消費して罪を0にし、体力を回復して復活処理
                     PlayerSins sins = PlayerSins.getPlayerSins(player);
                     consumeCoreAndReset(player, chest, sins);
                     return;
                 }
             }
         }
-        // 2. 通常のダメージ軽減（ジャスティスコアがある間のみ30%カット）
         if (hasFullArmor(player)) {
             ItemStack chest = player.getItemBySlot(EquipmentSlot.CHEST);
             if (GeburahArmorItem.hasJusticeCore(chest)) {
@@ -49,18 +45,13 @@ public class ArmorEventHandler {
     }
 
     public static void consumeCoreAndReset(ServerPlayer player, ItemStack chest, PlayerSins sins) {
-        // コア（NBT: item_core）を削除
         GeburahArmorItem.removeCore(chest);
-        // 再充填タイマーをセット
         GeburahArmorItem.setRepairTimer(chest, GeburahArmorItem.MAX_REPAIR_TIME);
-        // 罪（Sin）を完全に0にする
         if (sins != null) {
             sins.setSinnedTimes(0);
             PlayerSins.setPlayerSins(player, sins);
         }
-        // 体力を最大まで回復
         player.setHealth(player.getMaxHealth());
-        // メッセージと演出
         player.displayClientMessage(Component.translatable("tooltip.qliphoth_armaments.geburah.passive.broken_core.desc").withStyle(ChatFormatting.AQUA), true);
         player.level().playSound(null, player.blockPosition(), SoundEvents.TOTEM_USE, SoundSource.PLAYERS, 1.0f, 1.0f);
         player.level().playSound(null, player.blockPosition(), SoundEvents.GLASS_BREAK, SoundSource.PLAYERS, 1.5f, 0.5f);
@@ -68,7 +59,6 @@ public class ArmorEventHandler {
             sl.sendParticles(ParticleTypes.EXPLOSION_EMITTER, player.getX(), player.getY() + 1, player.getZ(), 3, 0, 0, 0, 0);
             sl.sendParticles(ParticleTypes.SOUL_FIRE_FLAME, player.getX(), player.getY() + 1, player.getZ(), 20, 0.5, 0.5, 0.5, 0.1);
         }
-        // 衝撃波
         AABB burstArea = player.getBoundingBox().inflate(8.0);
         var enemies = player.level().getEntitiesOfClass(LivingEntity.class, burstArea, e -> e != player && e.isAlive());
         for (LivingEntity e : enemies) {
