@@ -106,7 +106,7 @@ public class SinManager {
                     ArmorEventHandler.consumeCoreAndReset(player, chest, sinsCapability);
                     return;
                 }
-                player.hurt(BossDamageSources.GEBURAH_SINNED_TOO_MUCH_SOURCE, Float.MAX_VALUE);
+                player.hurt(com.finderfeed.fdbosses.init.BossDamageSources.GEBURAH_SINNED_TOO_MUCH_SOURCE, Float.MAX_VALUE);
                 return;
             }
             if (!isArbiter) {

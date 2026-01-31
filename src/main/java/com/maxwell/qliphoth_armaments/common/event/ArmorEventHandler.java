@@ -17,7 +17,6 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.phys.AABB;
 import net.minecraftforge.event.entity.living.LivingDamageEvent;
-import net.minecraftforge.event.entity.living.LivingDeathEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
 
@@ -25,54 +24,51 @@ import net.minecraftforge.fml.common.Mod;
 public class ArmorEventHandler {
     @SubscribeEvent
     public static void onDamagePre(LivingDamageEvent event) {
-        if (event.getEntity() instanceof ServerPlayer player && hasFullArmor(player)) {
+        if (!(event.getEntity() instanceof ServerPlayer player)) return;
+        // 1. 罪による即死ダメージ(Float.MAX_VALUE)が来た場合の判定
+        if (event.getSource().getMsgId().equals("geburah_sinned_too_much")) {
+            if (hasFullArmor(player)) {
+                ItemStack chest = player.getItemBySlot(EquipmentSlot.CHEST);
+                if (GeburahArmorItem.hasJusticeCore(chest)) {
+                    // コアがあるので、この即死ダメージ自体をキャンセルする
+                    event.setCanceled(true);
+                    // コアを消費して罪を0にし、体力を回復して復活処理
+                    PlayerSins sins = PlayerSins.getPlayerSins(player);
+                    consumeCoreAndReset(player, chest, sins);
+                    return;
+                }
+            }
+        }
+        // 2. 通常のダメージ軽減（ジャスティスコアがある間のみ30%カット）
+        if (hasFullArmor(player)) {
             ItemStack chest = player.getItemBySlot(EquipmentSlot.CHEST);
             if (GeburahArmorItem.hasJusticeCore(chest)) {
-                // コアがある間は被ダメージを30%カット
                 event.setAmount(event.getAmount() * 0.7F);
             }
         }
     }
 
-    // ★重要: あらゆる「死」を無効化し、罪を0にして復活させる
-    @SubscribeEvent
-    public static void onLivingDeath(LivingDeathEvent event) {
-        if (event.getEntity() instanceof ServerPlayer player && hasFullArmor(player)) {
-            ItemStack chest = player.getItemBySlot(EquipmentSlot.CHEST);
-            // コアを持っている場合のみ発動
-            if (GeburahArmorItem.hasJusticeCore(chest)) {
-                // 1. 死亡をキャンセル（罪による即死ダメージもこれで止まる）
-                event.setCanceled(true);
-                // 2. 復活処理の実行
-                PlayerSins sins = PlayerSins.getPlayerSins(player);
-                consumeCoreAndReset(player, chest, sins);
-            }
-        }
-    }
-
     public static void consumeCoreAndReset(ServerPlayer player, ItemStack chest, PlayerSins sins) {
-        // コア（item_coreタグ）を削除して「壊れた状態」にする
+        // コア（NBT: item_core）を削除
         GeburahArmorItem.removeCore(chest);
-        // 再充填（修理）タイマーをセット
+        // 再充填タイマーをセット
         GeburahArmorItem.setRepairTimer(chest, GeburahArmorItem.MAX_REPAIR_TIME);
-        // 罪（Sin）を完全に0にリセットする
+        // 罪（Sin）を完全に0にする
         if (sins != null) {
             sins.setSinnedTimes(0);
             PlayerSins.setPlayerSins(player, sins);
         }
-        // 体力を最大まで全回復
+        // 体力を最大まで回復
         player.setHealth(player.getMaxHealth());
-        // 通知メッセージ
+        // メッセージと演出
         player.displayClientMessage(Component.translatable("tooltip.qliphoth_armaments.geburah.passive.broken_core.desc").withStyle(ChatFormatting.AQUA), true);
-        player.displayClientMessage(Component.translatable("tooltip.qliphoth_armaments.geburah.passive.time_heal_core").withStyle(ChatFormatting.GRAY), false);
-        // 復活エフェクトと音
         player.level().playSound(null, player.blockPosition(), SoundEvents.TOTEM_USE, SoundSource.PLAYERS, 1.0f, 1.0f);
         player.level().playSound(null, player.blockPosition(), SoundEvents.GLASS_BREAK, SoundSource.PLAYERS, 1.5f, 0.5f);
         if (player.level() instanceof ServerLevel sl) {
             sl.sendParticles(ParticleTypes.EXPLOSION_EMITTER, player.getX(), player.getY() + 1, player.getZ(), 3, 0, 0, 0, 0);
             sl.sendParticles(ParticleTypes.SOUL_FIRE_FLAME, player.getX(), player.getY() + 1, player.getZ(), 20, 0.5, 0.5, 0.5, 0.1);
         }
-        // 周囲への衝撃波
+        // 衝撃波
         AABB burstArea = player.getBoundingBox().inflate(8.0);
         var enemies = player.level().getEntitiesOfClass(LivingEntity.class, burstArea, e -> e != player && e.isAlive());
         for (LivingEntity e : enemies) {
@@ -83,7 +79,7 @@ public class ArmorEventHandler {
         }
     }
 
-    private static boolean hasFullArmor(Player player) {
+    public static boolean hasFullArmor(Player player) {
         return player.getItemBySlot(EquipmentSlot.HEAD).is(ModItems.GEBURAH_HELMET.get()) &&
                 player.getItemBySlot(EquipmentSlot.CHEST).is(ModItems.GEBURAH_CHESTPLATE.get()) &&
                 player.getItemBySlot(EquipmentSlot.LEGS).is(ModItems.GEBURAH_LEGGINGS.get()) &&
