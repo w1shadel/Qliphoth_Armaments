@@ -2,7 +2,6 @@ package com.maxwell.qliphoth_armaments.common.network;
 
 import com.maxwell.qliphoth_armaments.api.QAElements;
 import com.maxwell.qliphoth_armaments.api.capabilities.CapabilityHandler;
-import net.minecraft.client.Minecraft;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
@@ -43,27 +42,10 @@ public class PacketSyncElementalState {
 
     public static void handle(PacketSyncElementalState msg, Supplier<NetworkEvent.Context> ctx) {
         ctx.get().enqueueWork(() -> {
-            DistExecutor.unsafeRunWhenOn(Dist.CLIENT, () -> () -> ClientHandler.handlePacket(msg));
+            DistExecutor.unsafeRunWhenOn(Dist.CLIENT,
+                    () -> () -> com.maxwell.qliphoth_armaments.client.network.ClientPacketHandlers
+                            .handleSyncElementalState(msg.entityId, msg.elementOrdinal, msg.duration));
         });
         ctx.get().setPacketHandled(true);
-    }
-
-    private static class ClientHandler {
-        public static void handlePacket(PacketSyncElementalState msg) {
-            Level level = Minecraft.getInstance().level;
-            if (level != null) {
-                Entity entity = level.getEntity(msg.entityId);
-                if (entity instanceof LivingEntity livingEntity) {
-                    livingEntity.getCapability(CapabilityHandler.ELEMENTAL_STATE_CAPABILITY).ifPresent(state -> {
-                        if (msg.elementOrdinal == -1) {
-                            state.clearElement();
-                        } else {
-                            QAElements element = QAElements.values()[msg.elementOrdinal];
-                            state.setElement(element, msg.duration, level.getGameTime());
-                        }
-                    });
-                }
-            }
-        }
     }
 }

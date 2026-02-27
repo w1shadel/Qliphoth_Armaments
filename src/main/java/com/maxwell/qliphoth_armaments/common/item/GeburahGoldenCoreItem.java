@@ -34,7 +34,7 @@ public class GeburahGoldenCoreItem extends SwordItem implements QAModWeapon {
     private final float baseChainDamage;
 
     public GeburahGoldenCoreItem(Tier pTier, int pAttackDamageModifier, float pAttackSpeedModifier,
-                                 Properties pProperties) {
+            Properties pProperties) {
         super(pTier, pAttackDamageModifier, pAttackSpeedModifier, pProperties);
         this.baseChainDamage = pAttackDamageModifier;
     }
@@ -59,22 +59,11 @@ public class GeburahGoldenCoreItem extends SwordItem implements QAModWeapon {
     }
 
     @Override
-    public boolean onLeftClickEntity(ItemStack stack, Player player, Entity entity) {
-        if (!player.level().isClientSide && entity instanceof LivingEntity target) {
+    public boolean hurtEnemy(ItemStack stack, LivingEntity target, LivingEntity attacker) {
+        if (!target.level().isClientSide && attacker instanceof Player player) {
             spawnPortalChain(player, target);
         }
-        return true;
-    }
-
-    @Override
-    public boolean onEntitySwing(ItemStack stack, LivingEntity entity) {
-        if (!entity.level().isClientSide && entity instanceof Player player) {
-            LivingEntity target = getTargetLookingAt(player, 15.0);
-            if (target != null) {
-                spawnPortalChain(player, target);
-            }
-        }
-        return super.onEntitySwing(stack, entity);
+        return super.hurtEnemy(stack, target, attacker);
     }
 
     private void spawnPortalChain(Player player, LivingEntity target) {
@@ -89,7 +78,7 @@ public class GeburahGoldenCoreItem extends SwordItem implements QAModWeapon {
         }
         level.playSound(null, portalPos.x, portalPos.y, portalPos.z, SoundEvents.ILLUSIONER_MIRROR_MOVE,
                 SoundSource.PLAYERS, 1.0F, 0.5F);
-        float damage = calculateChainDamage(player, 1.5f);
+        float damage = calculateChainDamage(player, 1.3f);
         PlayerChainEntity.summonAttack(level, player, QAElements.FIRE, target, portalPos, damage, false);
     }
 
@@ -125,7 +114,7 @@ public class GeburahGoldenCoreItem extends SwordItem implements QAModWeapon {
             Vec3 portalOffset = new Vec3(Math.cos(angle) * radius, 1.8, Math.sin(angle) * radius);
             Vec3 portalPos = player.position().add(portalOffset);
             LivingEntity target = targets.get(i % numTargets);
-            float damage = calculateChainDamage(player, 2.0f);
+            float damage = calculateChainDamage(player, 1.0f);
             PlayerChainEntity.summonAttack(level, player, QAElements.FIRE, target, portalPos, damage, true);
         }
         player.getCooldowns().addCooldown(this, 500);
@@ -155,42 +144,9 @@ public class GeburahGoldenCoreItem extends SwordItem implements QAModWeapon {
         return GradientTextUtil.createAnimatedGradient(translatedName, 300, sephirotGold, bloodRed, sephirotGold);
     }
 
-    private LivingEntity getTargetLookingAt(Player player, double range) {
-        Vec3 eyePos = player.getEyePosition();
-        Vec3 lookVec = player.getLookAngle();
-        AABB searchBox = player.getBoundingBox().inflate(range);
-        List<LivingEntity> entities = player.level().getEntitiesOfClass(LivingEntity.class, searchBox,
-                e -> e != player && e.isAlive() && e.isPickable() && !e.isSpectator());
-        LivingEntity bestTarget = null;
-        double bestScore = Double.MAX_VALUE;
-        for (LivingEntity e : entities) {
-            Vec3 targetMidPos = e.position().add(0, e.getBbHeight() / 2.0, 0);
-            Vec3 toTargetVec = targetMidPos.subtract(eyePos);
-            double distance = toTargetVec.length();
-            if (distance > range)
-                continue;
-            double dot = lookVec.dot(toTargetVec.normalize());
-            if (dot > 0.7) {
-                double angleError = Math.acos(dot);
-                double score = angleError * 10.0 + (distance * 0.2);
-                if (score < bestScore) {
-                    bestScore = score;
-                    bestTarget = e;
-                }
-            }
-        }
-        if (bestTarget == null) {
-            bestTarget = entities.stream()
-                    .filter(e -> e.distanceTo(player) < 3.0)
-                    .min(Comparator.comparingDouble(e -> e.distanceToSqr(player)))
-                    .orElse(null);
-        }
-        return bestTarget;
-    }
-
     @Override
     public void appendHoverText(ItemStack stack, Level level, List<Component> tooltipComponents,
-                                TooltipFlag tooltipFlag) {
+            TooltipFlag tooltipFlag) {
         tooltipComponents.add(Component.translatable("tooltip.qliphoth_armaments.geburah_golden_core.lore")
                 .withStyle(ChatFormatting.DARK_RED, ChatFormatting.ITALIC));
         tooltipComponents.add(Component.empty());

@@ -36,9 +36,11 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.EntityHitResult;
 import net.minecraft.world.phys.Vec3;
+import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.event.entity.living.LivingHurtEvent;
 import net.minecraftforge.event.entity.player.AttackEntityEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
+import net.minecraftforge.fml.DistExecutor;
 import net.minecraftforge.fml.common.Mod;
 
 import javax.annotation.Nullable;
@@ -51,7 +53,7 @@ public class TheSovereigntyItem extends SwordItem implements QAModWeapon {
     private static final String TAG_SHOCKWAVE_HIT = "SovereigntyShockwave";
 
     public TheSovereigntyItem(Tier pTier, int pAttackDamageModifier, float pAttackSpeedModifier,
-                              Properties pProperties) {
+            Properties pProperties) {
         super(pTier, pAttackDamageModifier, pAttackSpeedModifier, pProperties);
     }
 
@@ -90,7 +92,7 @@ public class TheSovereigntyItem extends SwordItem implements QAModWeapon {
         MalkuthAttackType visualType = (currentElement == QAElements.FIRE) ? MalkuthAttackType.FIRE
                 : MalkuthAttackType.ICE;
         double playerAttackDamage = player.getAttributeValue(Attributes.ATTACK_DAMAGE);
-        float finalDamage = 15.0F + (float) playerAttackDamage;
+        float finalDamage = (float) (playerAttackDamage * 1.4F);
         Vec3 lookDir = player.getLookAngle().multiply(1.2, 0, 1.2).normalize();
         Vec3 shockwaveOrigin = player.position().add(lookDir.scale(2.0));
         double range = 15.0;
@@ -198,7 +200,7 @@ public class TheSovereigntyItem extends SwordItem implements QAModWeapon {
     }
 
     private void summonStableMalkuthEarthquake(ServerLevel level, MalkuthAttackType type, Vec3 start, Vec3 direction,
-                                               int lifetime, float arcAngle, float damage) {
+            int lifetime, float arcAngle, float damage) {
         try {
             MalkuthEarthquake.summon(level, type, start, direction, lifetime, arcAngle, damage);
         } catch (Exception e) {
@@ -260,23 +262,7 @@ public class TheSovereigntyItem extends SwordItem implements QAModWeapon {
     @Override
     public void initializeClient(
             java.util.function.Consumer<net.minecraftforge.client.extensions.common.IClientItemExtensions> consumer) {
-        consumer.accept(new com.maxwell.qliphoth_armaments.client.QliphothItemRenderer(
-                com.maxwell.qliphoth_armaments.init.ModItems.THE_SOVEREIGNTY,
-                com.maxwell.qliphoth_armaments.init.ModModels.THE_SOVEREIGNTY,
-                com.maxwell.qliphoth_armaments.QA.MOD_ID,
-                "the_sovereignty/the_sovereignty")
-                .setEmissive("the_sovereignty/the_sovereignty_emissive")
-                .setBaseTransparent()
-                .setTextureAnimation(10, 3,
-                        com.maxwell.qliphoth_armaments.client.QliphothItemRenderer.TextureAnimationMode.PING_PONG)
-                .setScale(net.minecraft.world.item.ItemDisplayContext.FIRST_PERSON_RIGHT_HAND, 1.0f)
-                .setVanillaTransform(net.minecraft.world.item.ItemDisplayContext.FIRST_PERSON_RIGHT_HAND,
-                        0f, 0.4f, 0f)
-                .setThirdPersonRight(
-                        0.0f, 0.3f, 0.0f,
-                        0.0f, 0.0f, 0.0f)
-                .setPulsatingGlow(0.2f, 0.4f)
-                .setGui(0.3f, 0.0f, 0.0f, 0.6f)
-                .createExtensions());
+        DistExecutor.unsafeRunWhenOn(Dist.CLIENT,
+                () -> () -> com.maxwell.qliphoth_armaments.client.render.TheSovereigntyRenderer.register(consumer));
     }
 }

@@ -1,7 +1,6 @@
 package com.maxwell.qliphoth_armaments.common.network;
 
 import com.maxwell.qliphoth_armaments.api.capabilities.CapabilityHandler;
-import net.minecraft.client.Minecraft;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
@@ -33,21 +32,12 @@ public class PacketSyncMobSin {
     public boolean handle(Supplier<NetworkEvent.Context> supplier) {
         NetworkEvent.Context context = supplier.get();
         context.enqueueWork(() -> {
-            DistExecutor.unsafeRunWhenOn(Dist.CLIENT, () -> () -> handleClient(entityId, sinCount));
+            DistExecutor.unsafeRunWhenOn(Dist.CLIENT,
+                    () -> () -> com.maxwell.qliphoth_armaments.client.network.ClientPacketHandlers
+                            .handleSyncMobSin(entityId, sinCount));
         });
         context.setPacketHandled(true);
         return true;
     }
 
-    private static void handleClient(int entityId, int sinCount) {
-        net.minecraft.client.multiplayer.ClientLevel level = Minecraft.getInstance().level;
-        if (level != null) {
-            Entity entity = level.getEntity(entityId);
-            if (entity instanceof LivingEntity living) {
-                living.getCapability(CapabilityHandler.MISC_DATA_CAPABILITY).ifPresent(cap -> {
-                    cap.setSin(sinCount);
-                });
-            }
-        }
-    }
 }

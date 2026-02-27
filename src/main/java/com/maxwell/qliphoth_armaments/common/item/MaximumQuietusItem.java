@@ -46,7 +46,7 @@ public class MaximumQuietusItem extends SwordItem implements QAModWeapon {
     private static final int CHARGE_LV1 = 10;
     private static final int CHARGE_LV2 = 25;
 
-    private static final float AWAKENED_MELEE_PROC_MULTIPLIER = 3.5F;
+    private static final float AWAKENED_MELEE_PROC_MULTIPLIER = 1.8F;
     private static final float CHARGED_SHOT_MULTIPLIER = 3.5F;
     private static final float NORMAL_SHOT_MULTIPLIER = 1.8F;
     private static final float ULTIMATE_SHOT_MULTIPLIER = 6.0F;
@@ -89,9 +89,11 @@ public class MaximumQuietusItem extends SwordItem implements QAModWeapon {
             if (hasCore(stack)) {
                 if (!player.getCooldowns().isOnCooldown(this)) {
                     ServerLevel level = (ServerLevel) target.level();
-                    MalkuthAttackType visualType = (currentElement == QAElements.FIRE) ? MalkuthAttackType.FIRE : MalkuthAttackType.ICE;
+                    MalkuthAttackType visualType = (currentElement == QAElements.FIRE) ? MalkuthAttackType.FIRE
+                            : MalkuthAttackType.ICE;
                     Vec3 dir = player.getLookAngle().multiply(1, 0, 1).normalize();
-                    if (dir.lengthSqr() < 0.01) dir = player.getForward().multiply(1, 0, 1).normalize();
+                    if (dir.lengthSqr() < 0.01)
+                        dir = player.getForward().multiply(1, 0, 1).normalize();
                     Vec3 startPos = player.position().add(dir.scale(1.5));
                     Vec3 dirAndLen = dir.scale(15.0);
                     MalkuthEarthquake.summon(level, visualType, startPos, dirAndLen, 20, (float) Math.PI / 3.0F, 0.0F);
@@ -117,12 +119,14 @@ public class MaximumQuietusItem extends SwordItem implements QAModWeapon {
         ItemStack stack = player.getItemInHand(hand);
         boolean isAwakened = hasCore(stack);
         if (isAwakened && player.isShiftKeyDown()) {
-            if (!level.isClientSide) toggleMode(stack, player);
+            if (!level.isClientSide)
+                toggleMode(stack, player);
             player.getCooldowns().addCooldown(this, 5);
             return InteractionResultHolder.success(stack);
         }
         if (!isAwakened && !player.isCrouching()) {
-            if (!level.isClientSide) toggleMode(stack, player);
+            if (!level.isClientSide)
+                toggleMode(stack, player);
             return InteractionResultHolder.success(stack);
         }
         player.startUsingItem(hand);
@@ -131,7 +135,8 @@ public class MaximumQuietusItem extends SwordItem implements QAModWeapon {
 
     @Override
     public void onUseTick(Level level, LivingEntity livingEntity, ItemStack stack, int count) {
-        if (!(livingEntity instanceof Player player)) return;
+        if (!(livingEntity instanceof Player player))
+            return;
         boolean isAwakened = hasCore(stack);
         int usedTicks = this.getUseDuration(stack) - count;
         if (isAwakened) {
@@ -139,7 +144,8 @@ public class MaximumQuietusItem extends SwordItem implements QAModWeapon {
         }
         if (!level.isClientSide && level instanceof ServerLevel serverLevel) {
             QAElements element = getElementFromStack(stack);
-            MalkuthAttackType visualType = (element == QAElements.FIRE) ? MalkuthAttackType.FIRE : MalkuthAttackType.ICE;
+            MalkuthAttackType visualType = (element == QAElements.FIRE) ? MalkuthAttackType.FIRE
+                    : MalkuthAttackType.ICE;
             Vector3f col = MalkuthEntity.getMalkuthAttackPreparationParticleColor(visualType);
             if (usedTicks % 2 == 0) {
                 double radius = 1.5;
@@ -162,7 +168,8 @@ public class MaximumQuietusItem extends SwordItem implements QAModWeapon {
                         SoundEvents.PLAYER_LEVELUP, SoundSource.PLAYERS, 0.5F, 1.5F);
                 BallParticleOptions burst = BallParticleOptions.builder()
                         .color(col.x, col.y, col.z).scalingOptions(0, 0, 10).size(0.3F).brightness(5).build();
-                serverLevel.sendParticles(burst, player.getX(), player.getY() + 1.5, player.getZ(), 10, 0.2, 0.2, 0.2, 0.1);
+                serverLevel.sendParticles(burst, player.getX(), player.getY() + 1.5, player.getZ(), 10, 0.2, 0.2, 0.2,
+                        0.1);
             }
         }
         if (player.isCrouching()) {
@@ -176,7 +183,8 @@ public class MaximumQuietusItem extends SwordItem implements QAModWeapon {
 
     @Override
     public void releaseUsing(ItemStack stack, Level level, LivingEntity entity, int timeLeft) {
-        if (!(entity instanceof Player player)) return;
+        if (!(entity instanceof Player player))
+            return;
         int usedTicks = this.getUseDuration(stack) - timeLeft;
         boolean isAwakened = hasCore(stack);
         if (!level.isClientSide) {
@@ -200,7 +208,8 @@ public class MaximumQuietusItem extends SwordItem implements QAModWeapon {
         }
     }
 
-    private void shootProjectile(ServerLevel level, Player player, QAElements type, float speedMult, float damage, boolean isAwakened) {
+    private void shootProjectile(ServerLevel level, Player player, QAElements type, float speedMult, float damage,
+            boolean isAwakened) {
         Vec3 look = player.getLookAngle();
         Vec3 spawnPos = player.getEyePosition().add(look.scale(1.5));
         Vec3 velocity = look.scale(3.5 * speedMult);
@@ -208,7 +217,8 @@ public class MaximumQuietusItem extends SwordItem implements QAModWeapon {
         BossUtil.malkuthCannonShoot(level, visualType, spawnPos, look, 50.0);
         PlayerCannonProjectile.summonForPlayer(level, player, spawnPos, velocity, type, damage, false);
         level.playSound(null, player.getX(), player.getY(), player.getZ(),
-                (SoundEvent) BossSounds.MALKUTH_CANNON_SHOOT.get(), SoundSource.PLAYERS, 2.0F, 1.0F + (speedMult * 0.2F));
+                (SoundEvent) BossSounds.MALKUTH_CANNON_SHOOT.get(), SoundSource.PLAYERS, 2.0F,
+                1.0F + (speedMult * 0.2F));
         float shakeAmp = 1.0F * speedMult;
         PositionedScreenShakePacket.send(level,
                 FDShakeData.builder().amplitude(shakeAmp).frequency(20.0F).outTime(5).build(),
@@ -291,7 +301,8 @@ public class MaximumQuietusItem extends SwordItem implements QAModWeapon {
         if (hasCore(stack)) {
             tooltip.add(Component.translatable("item.qliphoth_armaments.maximum_quietus.fuse.lore"));
         } else {
-            tooltip.add(Component.translatable("item.qliphoth_armaments.maximum_quietus.lore").withStyle(ChatFormatting.GRAY, ChatFormatting.ITALIC));
+            tooltip.add(Component.translatable("item.qliphoth_armaments.maximum_quietus.lore")
+                    .withStyle(ChatFormatting.GRAY, ChatFormatting.ITALIC));
         }
         tooltip.add(Component.empty());
         QAElements mode = getElementFromStack(stack);

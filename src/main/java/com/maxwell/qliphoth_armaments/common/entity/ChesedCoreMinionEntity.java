@@ -49,12 +49,12 @@ import java.util.UUID;
 public class ChesedCoreMinionEntity extends FDMob implements ChesedBossBuddy {
     private int passiveAttackTimer = 0;
 
-    private static final EntityDataAccessor<Optional<UUID>> DATA_OWNER_ID =
-            SynchedEntityData.defineId(ChesedCoreMinionEntity.class, EntityDataSerializers.OPTIONAL_UUID);
-    private static final EntityDataAccessor<Integer> DATA_FORMATION_SLOT =
-            SynchedEntityData.defineId(ChesedCoreMinionEntity.class, EntityDataSerializers.INT);
-    private static final EntityDataAccessor<Boolean> DATA_IS_AWAKENED =
-            SynchedEntityData.defineId(ChesedCoreMinionEntity.class, EntityDataSerializers.BOOLEAN);
+    private static final EntityDataAccessor<Optional<UUID>> DATA_OWNER_ID = SynchedEntityData
+            .defineId(ChesedCoreMinionEntity.class, EntityDataSerializers.OPTIONAL_UUID);
+    private static final EntityDataAccessor<Integer> DATA_FORMATION_SLOT = SynchedEntityData
+            .defineId(ChesedCoreMinionEntity.class, EntityDataSerializers.INT);
+    private static final EntityDataAccessor<Boolean> DATA_IS_AWAKENED = SynchedEntityData
+            .defineId(ChesedCoreMinionEntity.class, EntityDataSerializers.BOOLEAN);
 
     private String currentCommand = "";
     private int crossfireTimer = 0;
@@ -108,7 +108,8 @@ public class ChesedCoreMinionEntity extends FDMob implements ChesedBossBuddy {
         }
         Player owner = getOwner();
         if (owner == null) {
-            if (!this.level().isClientSide()) this.discard();
+            if (!this.level().isClientSide())
+                this.discard();
             return;
         }
         if (!this.level().isClientSide() && (!owner.isAlive() || owner.isSpectator())) {
@@ -152,9 +153,11 @@ public class ChesedCoreMinionEntity extends FDMob implements ChesedBossBuddy {
     private void handleAttacks() {
         int slot = getFormationSlot();
         Player owner = getOwner();
-        if (owner == null) return;
+        if (owner == null)
+            return;
         if (currentCommand.equals("FIRE_LASER")) {
-            if (slot == 0) fireLaser();
+            if (slot == 0)
+                fireLaser();
             this.currentCommand = "";
             return;
         }
@@ -170,7 +173,8 @@ public class ChesedCoreMinionEntity extends FDMob implements ChesedBossBuddy {
                 } else {
                     switch (currentCommand) {
                         case "FIRE_CROSS_RAY":
-                            if (slot == 1 || slot == 2) fireCrossRay(target);
+                            if (slot == 1 || slot == 2)
+                                fireCrossRay(target);
                             break;
                     }
                 }
@@ -180,7 +184,8 @@ public class ChesedCoreMinionEntity extends FDMob implements ChesedBossBuddy {
         if (slot == 1 || slot == 2) {
             if (this.tickCount % 40 == 0) {
                 LivingEntity target = findTarget(owner);
-                if (target != null) fireEnergySphere(target);
+                if (target != null)
+                    fireEnergySphere(target);
             }
         }
     }
@@ -191,7 +196,8 @@ public class ChesedCoreMinionEntity extends FDMob implements ChesedBossBuddy {
             return;
         }
         Player owner = getOwner();
-        if (owner == null) return;
+        if (owner == null)
+            return;
         LivingEntity target = findTarget(owner);
         if (target != null && target.isAlive() && this.distanceToSqr(target) < 32 * 32) {
             boolean awakened = isAwakened();
@@ -205,8 +211,9 @@ public class ChesedCoreMinionEntity extends FDMob implements ChesedBossBuddy {
                     .end(end)
                     .build();
             FDLibCalls.sendParticles((ServerLevel) this.level(), weakLaser, start, 64.0D);
-            float damage = getScaledDamage(owner, awakened ? 0.5F : 0.3F);
-            ElementalReactionManager.applyElementalDamage(target, BossDamageSources.chesedAttack(this), damage, QAElements.LIGHTNING);
+            float damage = getScaledDamage(owner, awakened ? 0.7F : 0.3F);
+            ElementalReactionManager.applyElementalDamage(target, BossDamageSources.chesedAttack(this), damage,
+                    QAElements.LIGHTNING);
             this.level().playSound(null, getX(), getY(), getZ(),
                     BossSounds.CHESED_LIGHTNING_RAY.get(),
                     SoundSource.NEUTRAL, 0.3F, 2.0F);
@@ -215,7 +222,8 @@ public class ChesedCoreMinionEntity extends FDMob implements ChesedBossBuddy {
                         target.getBoundingBox().inflate(6.0),
                         e -> e != target && e != owner && e != this && !(e instanceof ChesedBossBuddy));
                 for (LivingEntity chainTarget : chains) {
-                    ElementalReactionManager.applyElementalDamage(chainTarget, BossDamageSources.chesedAttack(this), damage * 0.7F, QAElements.LIGHTNING);
+                    ElementalReactionManager.applyElementalDamage(chainTarget, BossDamageSources.chesedAttack(this),
+                            damage * 0.7F, QAElements.LIGHTNING);
                     ((ServerLevel) this.level()).sendParticles(
                             LightningParticleOptions.builder()
                                     .color(100, 255, 255).lifetime(10).quadSize(0.1F).randomRoll(true).build(),
@@ -229,7 +237,8 @@ public class ChesedCoreMinionEntity extends FDMob implements ChesedBossBuddy {
     }
 
     private void fireLaser() {
-        if (this.isFiringLaser) return;
+        if (this.isFiringLaser)
+            return;
         getAnimationSystem().startAnimation("ATTACK", AnimationTicker.builder(BossAnims.CHESED_ATTACK)
                 .setToNullTransitionTime(0).setSpeed(0.8f).build());
         this.level().playSound(null, getX(), getY(), getZ(),
@@ -249,13 +258,15 @@ public class ChesedCoreMinionEntity extends FDMob implements ChesedBossBuddy {
 
     private void performActualLaser() {
         Player owner = getOwner();
-        if (owner == null) return;
+        if (owner == null)
+            return;
         Vec3 startPos = this.getEyePosition();
         Vec3 lookDir = owner.getLookAngle().normalize();
         double maxRange = 200.0D;
         Vec3 endPos = startPos.add(lookDir.scale(maxRange));
         net.minecraft.world.phys.BlockHitResult rayTrace = this.level().clip(new net.minecraft.world.level.ClipContext(
-                startPos, endPos, net.minecraft.world.level.ClipContext.Block.COLLIDER, net.minecraft.world.level.ClipContext.Fluid.NONE, this));
+                startPos, endPos, net.minecraft.world.level.ClipContext.Block.COLLIDER,
+                net.minecraft.world.level.ClipContext.Fluid.NONE, this));
         Vec3 hitPos = rayTrace.getLocation();
         ChesedRayOptions options = ChesedRayOptions.builder()
                 .time(15, 25, 10).width(isAwakened() ? 2.5F : 1.5F)
@@ -273,11 +284,13 @@ public class ChesedCoreMinionEntity extends FDMob implements ChesedBossBuddy {
         List<Entity> hitEntities = FDHelpers.traceEntities(this.level(), startPos, endPos, 3.0,
                 (entity) -> !(entity instanceof Player || entity instanceof ChesedBossBuddy));
         float damage = getScaledDamage(owner, 6.0F);
-        if (isAwakened()) damage *= 1.5F;
+        if (isAwakened())
+            damage *= 2.0F;
         for (Entity entity : hitEntities) {
             if (entity instanceof LivingEntity living) {
                 living.invulnerableTime = 0;
-                ElementalReactionManager.applyElementalDamage(living, BossDamageSources.chesedAttack(this), damage, QAElements.LIGHTNING);
+                ElementalReactionManager.applyElementalDamage(living, BossDamageSources.chesedAttack(this), damage,
+                        QAElements.LIGHTNING);
                 living.push(lookDir.x, 0.2, lookDir.z);
             }
         }
@@ -298,31 +311,39 @@ public class ChesedCoreMinionEntity extends FDMob implements ChesedBossBuddy {
     }
 
     private void summonStonesAfterRayAttack(ServerLevel level, int count, Vec3 direction, Vec3 pos, Player owner) {
-        Vector3f v = (new Vector3f(0.0F, 1.0F, 0.0F)).cross((float) direction.x, (float) direction.y, (float) direction.z);
+        Vector3f v = (new Vector3f(0.0F, 1.0F, 0.0F)).cross((float) direction.x, (float) direction.y,
+                (float) direction.z);
         float damage = getScaledDamage(owner, 10.0F);
         for (int i = 0; i < count; ++i) {
-            BlockState state = level.random.nextFloat() > 0.5F ? Blocks.BLACKSTONE.defaultBlockState() : Blocks.SCULK.defaultBlockState();
-            Vector3f add = v.rotateAxis(((float) Math.PI * 2F) * level.random.nextFloat(), (float) direction.x, (float) direction.y, (float) direction.z, new Vector3f());
+            BlockState state = level.random.nextFloat() > 0.5F ? Blocks.BLACKSTONE.defaultBlockState()
+                    : Blocks.SCULK.defaultBlockState();
+            Vector3f add = v.rotateAxis(((float) Math.PI * 2F) * level.random.nextFloat(), (float) direction.x,
+                    (float) direction.y, (float) direction.z, new Vector3f());
             float rd = level.random.nextFloat() * 0.5F;
             ChesedFallingBlock block = ChesedFallingBlock.summon(level, state, pos, damage);
-            block.setDeltaMovement(direction.add((double) (add.x * rd * 2.0F), (double) (add.y * rd), (double) (add.z * rd * 2.0F)).normalize().multiply(0.5, 2.4 - rd, 0.5));
+            block.setDeltaMovement(
+                    direction.add((double) (add.x * rd * 2.0F), (double) (add.y * rd), (double) (add.z * rd * 2.0F))
+                            .normalize().multiply(0.5, 2.4 - rd, 0.5));
             block.setOwner(owner);
         }
     }
 
     private void fireCrossRay(LivingEntity target) {
         Player owner = getOwner();
-        if (owner == null) return;
+        if (owner == null)
+            return;
         Vec3 startPos = this.getEyePosition();
         Vec3 targetPos = target.position();
         ChesedRayOptions options = ChesedRayOptions.builder()
                 .time(2, 5, 2).width(0.2F).color(100, 255, 255).lightningColor(90, 180, 255).end(targetPos).build();
         FDLibCalls.sendParticles((ServerLevel) this.level(), options, startPos, 64.0D);
         float damage = getScaledDamage(owner, 1.5F);
-        ChesedOneShotVerticalRayEntity ray = ChesedOneShotVerticalRayEntity.summon(this.level(), targetPos, damage, 40.0F, 20);
+        ChesedOneShotVerticalRayEntity ray = ChesedOneShotVerticalRayEntity.summon(this.level(), targetPos, damage,
+                40.0F, 20);
         ray.setDamageRadius(2.0F);
         ray.softerSound = true;
-        this.level().playSound(null, targetPos.x, targetPos.y, targetPos.z, BossSounds.CHESED_LIGHTNING_RAY.get(), SoundSource.NEUTRAL, 0.8F, 1.2F);
+        this.level().playSound(null, targetPos.x, targetPos.y, targetPos.z, BossSounds.CHESED_LIGHTNING_RAY.get(),
+                SoundSource.NEUTRAL, 0.8F, 1.2F);
     }
 
     private void tickCrossfireSequence() {
@@ -351,7 +372,8 @@ public class ChesedCoreMinionEntity extends FDMob implements ChesedBossBuddy {
                     offsetZ = -radius;
                     break;
             }
-            Vec3 dest = new Vec3(this.lockedTargetPos.x + offsetX, this.lockedTargetPos.y + 2.0, this.lockedTargetPos.z + offsetZ);
+            Vec3 dest = new Vec3(this.lockedTargetPos.x + offsetX, this.lockedTargetPos.y + 2.0,
+                    this.lockedTargetPos.z + offsetZ);
             Vec3 current = this.position();
             Vec3 move = dest.subtract(current).scale(0.2);
             this.setPos(current.add(move));
@@ -369,20 +391,23 @@ public class ChesedCoreMinionEntity extends FDMob implements ChesedBossBuddy {
                 Vec3 dir = center.subtract(getEyePosition()).normalize();
                 Vec3 endPos = center.add(dir.scale(6.0));
                 ChesedRayOptions laser = ChesedRayOptions.builder()
-                        .time(2, 4, 2).width(0.6F).color(80, 220, 255).lightningColor(200, 255, 255).end(endPos).build();
+                        .time(2, 4, 2).width(0.6F).color(80, 220, 255).lightningColor(200, 255, 255).end(endPos)
+                        .build();
                 FDLibCalls.sendParticles((ServerLevel) this.level(), laser, getEyePosition(), 64.0D);
                 List<LivingEntity> targets = this.level().getEntitiesOfClass(LivingEntity.class,
                         new AABB(center.add(-2, -2, -2), center.add(2, 2, 2)),
                         e -> e != owner && e != this && !(e instanceof ChesedBossBuddy));
                 for (LivingEntity e : targets) {
                     float damage = getScaledDamage(owner, 0.4F);
-                    ElementalReactionManager.applyElementalDamage(e, BossDamageSources.chesedAttack(this), damage, QAElements.LIGHTNING);
+                    ElementalReactionManager.applyElementalDamage(e, BossDamageSources.chesedAttack(this), damage,
+                            QAElements.LIGHTNING);
                     Vec3 pull = center.subtract(e.position()).normalize().scale(0.1);
                     e.push(pull.x, pull.y, pull.z);
                 }
                 if (this.crossfireTimer % 10 == 0) {
                     this.level().playSound(null, center.x, center.y, center.z,
-                            BossSounds.CHESED_LIGHTNING_RAY.get(), SoundSource.NEUTRAL, 0.5F, 1.5F + (this.random.nextFloat() * 0.5F));
+                            BossSounds.CHESED_LIGHTNING_RAY.get(), SoundSource.NEUTRAL, 0.5F,
+                            1.5F + (this.random.nextFloat() * 0.5F));
                 }
             }
         }
@@ -401,11 +426,13 @@ public class ChesedCoreMinionEntity extends FDMob implements ChesedBossBuddy {
 
     private void fireEnergySphere(LivingEntity target) {
         Player owner = getOwner();
-        if (owner == null) return;
+        if (owner == null)
+            return;
         if (target == null || !target.isAlive()) {
             target = findTarget(owner);
         }
-        if (target == null) return;
+        if (target == null)
+            return;
         float damage = getScaledDamage(owner, 0.8F);
         Vec3 startPos = this.position().add(0, 0.5, 0);
         Vec3 endPos = target.getEyePosition();
@@ -433,14 +460,14 @@ public class ChesedCoreMinionEntity extends FDMob implements ChesedBossBuddy {
         List<Monster> nearbyEnemies = this.level().getEntitiesOfClass(
                 Monster.class,
                 searchBox,
-                entity -> entity.isAlive() && !(entity instanceof ChesedBossBuddy)
-        );
+                entity -> entity.isAlive() && !(entity instanceof ChesedBossBuddy));
         LivingEntity bestTarget = null;
         double bestDotProduct = -1.0D;
         Vec3 eyePos = owner.getEyePosition();
         Vec3 lookVec = owner.getLookAngle().normalize();
         for (LivingEntity enemy : nearbyEnemies) {
-            if (enemy.distanceToSqr(owner) > range * range) continue;
+            if (enemy.distanceToSqr(owner) > range * range)
+                continue;
             Vec3 toEnemy = enemy.position().add(0, enemy.getBbHeight() / 2.0, 0).subtract(eyePos).normalize();
             double dot = lookVec.dot(toEnemy);
             if (dot > 0.5) {
@@ -496,7 +523,8 @@ public class ChesedCoreMinionEntity extends FDMob implements ChesedBossBuddy {
     @Nullable
     public Player getOwner() {
         UUID uuid = getOwnerUUID();
-        if (uuid == null) return null;
+        if (uuid == null)
+            return null;
         return this.level().getPlayerByUUID(uuid);
     }
 
@@ -535,6 +563,7 @@ public class ChesedCoreMinionEntity extends FDMob implements ChesedBossBuddy {
     }
 
     @Override
-    protected void checkFallDamage(double y, boolean onGround, net.minecraft.world.level.block.state.BlockState state, net.minecraft.core.BlockPos pos) {
+    protected void checkFallDamage(double y, boolean onGround, net.minecraft.world.level.block.state.BlockState state,
+            net.minecraft.core.BlockPos pos) {
     }
 }

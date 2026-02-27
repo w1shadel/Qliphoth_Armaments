@@ -1,34 +1,19 @@
 package com.maxwell.qliphoth_armaments.common.item;
 
-import com.finderfeed.fdbosses.client.BossParticles;
-import com.finderfeed.fdbosses.client.particles.arc_lightning.ArcLightningOptions;
-import com.finderfeed.fdbosses.client.particles.chesed_attack_ray.ChesedRayOptions;
-import com.finderfeed.fdbosses.content.entities.chesed_boss.falling_block.ChesedFallingBlock;
-import com.finderfeed.fdbosses.init.BossDamageSources;
-import com.finderfeed.fdbosses.init.BossSounds;
-import com.finderfeed.fdlib.FDHelpers;
-import com.finderfeed.fdlib.FDLibCalls;
 import com.finderfeed.fdlib.systems.bedrock.animations.animation_system.AnimationTicker;
 import com.finderfeed.fdlib.systems.bedrock.animations.animation_system.item.AnimatedItem;
 import com.finderfeed.fdlib.systems.bedrock.animations.animation_system.item.FDItemAnimationHandler;
 import com.finderfeed.fdlib.systems.bedrock.animations.animation_system.item.FDItemAnimationSystem;
 import com.finderfeed.fdlib.systems.bedrock.animations.animation_system.item.FDServerItemAnimations;
 import com.finderfeed.fdlib.systems.bedrock.animations.animation_system.item.animated_item.AnimatedItemStackContext;
-import com.finderfeed.fdlib.systems.impact_frames.ImpactFrame;
 import com.finderfeed.fdlib.systems.shake.FDShakeData;
 import com.finderfeed.fdlib.systems.shake.PositionedScreenShakePacket;
-import com.finderfeed.fdlib.util.client.particles.ball_particle.BallParticleOptions;
-import com.finderfeed.fdlib.util.client.particles.lightning_particle.LightningParticleOptions;
 import com.maxwell.qliphoth_armaments.api.ElementalReactionManager;
 import com.maxwell.qliphoth_armaments.api.QAElements;
+import com.maxwell.qliphoth_armaments.common.util.ClientSafeAccess;
 import com.maxwell.qliphoth_armaments.common.util.GradientTextUtil;
 import com.maxwell.qliphoth_armaments.init.ModAnims;
-import com.maxwell.qliphoth_armaments.init.ModItems;
-import com.maxwell.qliphoth_armaments.init.ModModels;
 import net.minecraft.ChatFormatting;
-import net.minecraft.client.gui.screens.Screen;
-import net.minecraft.core.BlockPos;
-import net.minecraft.core.particles.ParticleType;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.sounds.SoundEvents;
@@ -46,6 +31,8 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.Vec3;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.fml.DistExecutor;
 import org.joml.Vector3f;
 
 import java.awt.*;
@@ -57,7 +44,7 @@ public class SeraphimRailGunItem extends SwordItem implements QAModWeapon, Anima
     private static final int RAILGUN_COOLDOWN = 100;
 
     public SeraphimRailGunItem(Tier pTier, int pAttackDamageModifier, float pAttackSpeedModifier,
-                               Properties pProperties) {
+            Properties pProperties) {
         super(pTier, pAttackDamageModifier, pAttackSpeedModifier, pProperties);
     }
 
@@ -80,19 +67,21 @@ public class SeraphimRailGunItem extends SwordItem implements QAModWeapon, Anima
                     "ACTION",
                     AnimationTicker.builder(ModAnims.SERAPHIM_CHARGE)
                             .build(),
-                    hand
-            );
+                    hand);
             level.playSound(null, player.getX(), player.getY(), player.getZ(),
-                    BossSounds.CHESED_FINAL_ATTACK_CHARGE.get(), SoundSource.PLAYERS, 1.0F, 1.0F);
+                    com.finderfeed.fdbosses.init.BossSounds.CHESED_FINAL_ATTACK_CHARGE.get(), SoundSource.PLAYERS, 1.0F,
+                    1.0F);
         }
         return InteractionResultHolder.consume(itemstack);
     }
 
     @Override
     public void onUseTick(Level level, LivingEntity livingEntity, ItemStack stack, int count) {
-        if (!(livingEntity instanceof Player player)) return;
+        if (!(livingEntity instanceof Player player))
+            return;
         int ticksUsed = this.getUseDuration(stack) - count;
-        if (level.isClientSide) return;
+        if (level.isClientSide)
+            return;
         ServerLevel serverLevel = (ServerLevel) level;
         player.addEffect(new MobEffectInstance(MobEffects.MOVEMENT_SLOWDOWN, 2, 2, false, false));
         player.setDeltaMovement(0, Math.min(player.getDeltaMovement().y, 0), 0);
@@ -115,8 +104,7 @@ public class SeraphimRailGunItem extends SwordItem implements QAModWeapon, Anima
                     "ACTION",
                     AnimationTicker.builder(ModAnims.SERAPHIM_SHOOT)
                             .build(),
-                    player.getUsedItemHand()
-            );
+                    player.getUsedItemHand());
             performLaserAttack(serverLevel, player, stack, true);
             player.getCooldowns().addCooldown(this, RAILGUN_COOLDOWN);
             spawnBurstParticles(serverLevel, player, 0.0F, 1.0F, 1.0F);
@@ -136,8 +124,7 @@ public class SeraphimRailGunItem extends SwordItem implements QAModWeapon, Anima
         if (animSystem != null) {
             animSystem.startAnimation("IDLE",
                     AnimationTicker.builder(ModAnims.SERAPHIM_IDLE)
-                            .build()
-            );
+                            .build());
         }
     }
 
@@ -150,45 +137,53 @@ public class SeraphimRailGunItem extends SwordItem implements QAModWeapon, Anima
         float r = 1.0F;
         float g = 0.4F;
         float b = 0.4F;
-        ChesedRayOptions options = ChesedRayOptions.builder()
+        com.finderfeed.fdbosses.client.particles.chesed_attack_ray.ChesedRayOptions options = com.finderfeed.fdbosses.client.particles.chesed_attack_ray.ChesedRayOptions
+                .builder()
                 .time(20, 30, 15)
                 .width(width)
                 .color(r, g, b)
                 .lightningColor(1.0F, 0.8F, 0.2F)
                 .end(endPos)
                 .build();
-        FDLibCalls.sendParticles(level, options, startPos, 256.0D);
+        com.finderfeed.fdlib.FDLibCalls.sendParticles(level, options, startPos, 256.0D);
         level.playSound(null, owner.getX(), owner.getY(), owner.getZ(),
-                BossSounds.CHESED_FINAL_ATTACK_RAY.get(), SoundSource.PLAYERS, 3.0F, 0.6F);
-        ImpactFrame baseFrame = new ImpactFrame(5.0F, 0.2F, 20, false);
-        FDLibCalls.sendImpactFrames(level, owner.position(), 256.0F, baseFrame);
+                com.finderfeed.fdbosses.init.BossSounds.CHESED_FINAL_ATTACK_RAY.get(), SoundSource.PLAYERS, 3.0F, 0.6F);
+        com.finderfeed.fdlib.systems.impact_frames.ImpactFrame baseFrame = new com.finderfeed.fdlib.systems.impact_frames.ImpactFrame(
+                5.0F, 0.2F, 20, false);
+        com.finderfeed.fdlib.FDLibCalls.sendImpactFrames(level, owner.position(), 256.0F, baseFrame);
         PositionedScreenShakePacket.send(level,
                 FDShakeData.builder().frequency(40.0F).amplitude(5.5F).inTime(0).stayTime(10).outTime(20).build(),
                 owner.position(), 64.0D);
         float recoil = 3.5F;
         owner.push(-lookDir.x * recoil, 0.5, -lookDir.z * recoil);
         owner.hurtMarked = true;
-        BallParticleOptions blast = BallParticleOptions.builder()
+        com.finderfeed.fdlib.util.client.particles.ball_particle.BallParticleOptions blast = com.finderfeed.fdlib.util.client.particles.ball_particle.BallParticleOptions
+                .builder()
                 .color(r, g, b)
                 .scalingOptions(0, 5, 20).size(1.0F).brightness(10).build();
-        level.sendParticles(blast, startPos.x + lookDir.x, startPos.y + lookDir.y, startPos.z + lookDir.z, 1, 0, 0, 0, 0);
-        float damage = getScaledDamage(owner, 25.0F);
+        level.sendParticles(blast, startPos.x + lookDir.x, startPos.y + lookDir.y, startPos.z + lookDir.z, 1, 0, 0, 0,
+                0);
+        float damage = getScaledDamage(owner, 12.0F);
         double hitRadius = 18.0D;
-        List<Entity> hitEntities = FDHelpers.traceEntities(level, startPos, endPos, hitRadius, (entity) -> !(entity instanceof Player));
+        List<Entity> hitEntities = com.finderfeed.fdlib.FDHelpers.traceEntities(level, startPos, endPos, hitRadius,
+                (entity) -> !(entity instanceof Player));
         for (Entity entity : hitEntities) {
             if (entity instanceof LivingEntity living) {
                 living.invulnerableTime = 0;
                 ElementalReactionManager.applyState(living, QAElements.LIGHTNING, 300);
-                living.hurt(BossDamageSources.chesedAttack(owner), damage);
+                living.hurt(com.finderfeed.fdbosses.init.BossDamageSources.chesedAttack(owner), damage);
                 living.push(lookDir.x * recoil, 0.8, lookDir.z * recoil);
-                LightningParticleOptions lightning = LightningParticleOptions.builder()
+                com.finderfeed.fdlib.util.client.particles.lightning_particle.LightningParticleOptions lightning = com.finderfeed.fdlib.util.client.particles.lightning_particle.LightningParticleOptions
+                        .builder()
                         .color(1, 1, 1)
                         .lifetime(10).quadSize(0.5F).randomRoll(true).build();
-                level.sendParticles(lightning, living.getX(), living.getY() + living.getBbHeight() / 2, living.getZ(), 5, 0.5, 0.5, 0.5, 0.0);
+                level.sendParticles(lightning, living.getX(), living.getY() + living.getBbHeight() / 2, living.getZ(),
+                        5, 0.5, 0.5, 0.5, 0.0);
             }
         }
         net.minecraft.world.phys.BlockHitResult rayTrace = level.clip(new net.minecraft.world.level.ClipContext(
-                startPos, endPos, net.minecraft.world.level.ClipContext.Block.COLLIDER, net.minecraft.world.level.ClipContext.Fluid.NONE, owner));
+                startPos, endPos, net.minecraft.world.level.ClipContext.Block.COLLIDER,
+                net.minecraft.world.level.ClipContext.Fluid.NONE, owner));
         Vec3 hitPos = rayTrace.getLocation();
         summonStonesAfterRayAttack(level, 30, lookDir.reverse(), hitPos, owner);
         destroyBlocksInPath(level, startPos, lookDir, (int) maxRange, owner);
@@ -199,13 +194,15 @@ public class SeraphimRailGunItem extends SwordItem implements QAModWeapon, Anima
         Vec3 currentPos = start;
         for (int i = 0; i < steps; i++) {
             currentPos = currentPos.add(dir);
-            BlockPos centerPos = BlockPos.containing(currentPos);
+            net.minecraft.core.BlockPos centerPos = net.minecraft.core.BlockPos.containing(currentPos);
             if (!level.getBlockState(centerPos).isAir()) {
-                for (BlockPos pos : BlockPos.betweenClosed(centerPos.offset(-destructionRadius, -destructionRadius, -destructionRadius),
+                for (net.minecraft.core.BlockPos pos : net.minecraft.core.BlockPos.betweenClosed(
+                        centerPos.offset(-destructionRadius, -destructionRadius, -destructionRadius),
                         centerPos.offset(destructionRadius, destructionRadius, destructionRadius))) {
                     if (pos.distSqr(centerPos) <= destructionRadius * destructionRadius) {
                         BlockState state = level.getBlockState(pos);
-                        if (!state.isAir() && state.getDestroySpeed(level, pos) >= 0 && state.getDestroySpeed(level, pos) < 100.0f) {
+                        if (!state.isAir() && state.getDestroySpeed(level, pos) >= 0
+                                && state.getDestroySpeed(level, pos) < 100.0f) {
                             level.destroyBlock(pos, false, owner);
                         }
                     }
@@ -215,21 +212,28 @@ public class SeraphimRailGunItem extends SwordItem implements QAModWeapon, Anima
     }
 
     private void summonStonesAfterRayAttack(ServerLevel level, int count, Vec3 direction, Vec3 pos, Player owner) {
-        Vector3f v = (new Vector3f(0.0F, 1.0F, 0.0F)).cross((float) direction.x, (float) direction.y, (float) direction.z);
+        Vector3f v = (new Vector3f(0.0F, 1.0F, 0.0F)).cross((float) direction.x, (float) direction.y,
+                (float) direction.z);
         float damage = getScaledDamage(owner, 1.5F);
         for (int i = 0; i < count; ++i) {
-            BlockState state = level.random.nextFloat() > 0.5F ? Blocks.BLACKSTONE.defaultBlockState() : Blocks.SCULK.defaultBlockState();
+            BlockState state = level.random.nextFloat() > 0.5F ? Blocks.BLACKSTONE.defaultBlockState()
+                    : Blocks.SCULK.defaultBlockState();
             Vector3f add = new Vector3f(v);
-            add.rotateAxis(((float) Math.PI * 2F) * level.random.nextFloat(), (float) direction.x, (float) direction.y, (float) direction.z);
+            add.rotateAxis(((float) Math.PI * 2F) * level.random.nextFloat(), (float) direction.x, (float) direction.y,
+                    (float) direction.z);
             float rd = level.random.nextFloat() * 0.5F;
-            ChesedFallingBlock block = ChesedFallingBlock.summon(level, state, pos, damage);
-            block.setDeltaMovement(direction.add((double) (add.x * rd * 2.0F), (double) (add.y * rd), (double) (add.z * rd * 2.0F)).normalize().multiply(0.5, 2.4 - rd, 0.5));
+            com.finderfeed.fdbosses.content.entities.chesed_boss.falling_block.ChesedFallingBlock block = com.finderfeed.fdbosses.content.entities.chesed_boss.falling_block.ChesedFallingBlock
+                    .summon(level, state, pos, damage);
+            block.setDeltaMovement(
+                    direction.add((double) (add.x * rd * 2.0F), (double) (add.y * rd), (double) (add.z * rd * 2.0F))
+                            .normalize().multiply(0.5, 2.4 - rd, 0.5));
             block.setOwner(owner);
         }
     }
 
     private void spawnGatheringParticles(ServerLevel level, Player player, double radius, float r, float g, float b) {
-        BallParticleOptions options = BallParticleOptions.builder()
+        com.finderfeed.fdlib.util.client.particles.ball_particle.BallParticleOptions options = com.finderfeed.fdlib.util.client.particles.ball_particle.BallParticleOptions
+                .builder()
                 .color(r, g, b).scalingOptions(0, 0, 5).size(0.15F).brightness(3).build();
         double angle = (level.getGameTime() * 0.5);
         double x = player.getX() + Math.cos(angle) * radius;
@@ -242,14 +246,19 @@ public class SeraphimRailGunItem extends SwordItem implements QAModWeapon, Anima
     }
 
     private void spawnArcLightning(ServerLevel level, Player player) {
-        ArcLightningOptions arc = ArcLightningOptions.builder((ParticleType) BossParticles.ARC_LIGHTNING.get())
-                .end(player.getX() + (level.random.nextDouble() - 0.5), player.getY() + 1.2, player.getZ() + (level.random.nextDouble() - 0.5))
+        com.finderfeed.fdbosses.client.particles.arc_lightning.ArcLightningOptions arc = com.finderfeed.fdbosses.client.particles.arc_lightning.ArcLightningOptions
+                .builder(
+                        (net.minecraft.core.particles.ParticleType) com.finderfeed.fdbosses.client.BossParticles.ARC_LIGHTNING
+                                .get())
+                .end(player.getX() + (level.random.nextDouble() - 0.5), player.getY() + 1.2,
+                        player.getZ() + (level.random.nextDouble() - 0.5))
                 .lifetime(2).color(255, 100, 50).width(0.1F).build();
-        FDLibCalls.sendParticles(level, arc, player.position().add(0, 3, 0), 64.0D);
+        com.finderfeed.fdlib.FDLibCalls.sendParticles(level, arc, player.position().add(0, 3, 0), 64.0D);
     }
 
     private void spawnBurstParticles(ServerLevel level, Player player, float r, float g, float b) {
-        BallParticleOptions burst = BallParticleOptions.builder()
+        com.finderfeed.fdlib.util.client.particles.ball_particle.BallParticleOptions burst = com.finderfeed.fdlib.util.client.particles.ball_particle.BallParticleOptions
+                .builder()
                 .color(r, g, b).scalingOptions(0, 0, 15).size(0.5F).brightness(10).build();
         level.sendParticles(burst, player.getX(), player.getY() + 1.5, player.getZ(), 20, 0.1, 0.1, 0.1, 0.1);
     }
@@ -272,17 +281,19 @@ public class SeraphimRailGunItem extends SwordItem implements QAModWeapon, Anima
     @Override
     public void appendHoverText(ItemStack stack, Level level, List<Component> tooltip, TooltipFlag flag) {
         super.appendHoverText(stack, level, tooltip, flag);
-        tooltip.add(Component.translatable("item.qliphoth_armaments.seraphim_railgun.lore").withStyle(ChatFormatting.GRAY, ChatFormatting.ITALIC));
+        tooltip.add(Component.translatable("item.qliphoth_armaments.seraphim_railgun.lore")
+                .withStyle(ChatFormatting.GRAY, ChatFormatting.ITALIC));
         tooltip.add(Component.empty());
-        tooltip.add(Component.translatable("item.qliphoth_armaments.seraphim_railgun.charge_over").withStyle(ChatFormatting.RED, ChatFormatting.BOLD));
-        if (Screen.hasShiftDown()) {
+        tooltip.add(Component.translatable("item.qliphoth_armaments.seraphim_railgun.charge_over")
+                .withStyle(ChatFormatting.RED, ChatFormatting.BOLD));
+        if (ClientSafeAccess.hasShiftDown()) {
             tooltip.add(Component.empty());
             addRightClickSkill(tooltip,
                     "item.qliphoth_armaments.seraphim_railgun.r_skill_1",
-                    "item.qliphoth_armaments.seraphim_railgun.r_skill_2"
-            );
+                    "item.qliphoth_armaments.seraphim_railgun.r_skill_2");
             tooltip.add(Component.empty());
-            tooltip.add(Component.translatable("item.qliphoth_armaments.seraphim_railgun.r_skill_3").withStyle(ChatFormatting.DARK_RED, ChatFormatting.ITALIC));
+            tooltip.add(Component.translatable("item.qliphoth_armaments.seraphim_railgun.r_skill_3")
+                    .withStyle(ChatFormatting.DARK_RED, ChatFormatting.ITALIC));
         } else {
             addPressShiftHint(tooltip);
         }
@@ -291,22 +302,8 @@ public class SeraphimRailGunItem extends SwordItem implements QAModWeapon, Anima
     @Override
     public void initializeClient(
             java.util.function.Consumer<net.minecraftforge.client.extensions.common.IClientItemExtensions> consumer) {
-        consumer.accept(new com.maxwell.qliphoth_armaments.client.QliphothItemRenderer(
-                ModItems.SERAPHIM_RAILGUN,
-                ModModels.SERAPHIM_RAILGUN,
-                com.maxwell.qliphoth_armaments.QA.MOD_ID,
-                "seraphim_railgun")
-                .setEmissive("seraphim_railgun_emissive")
-                .setBaseTransparent()
-                .setScale(net.minecraft.world.item.ItemDisplayContext.FIRST_PERSON_RIGHT_HAND, 1.0f)
-                .setVanillaTransform(net.minecraft.world.item.ItemDisplayContext.FIRST_PERSON_RIGHT_HAND,
-                        0f, 0.4f, 0f)
-                .setThirdPersonRight(
-                        0.0f, -0.3f, 0.0f,
-                        0.0f, 0.0f, 0.0f)
-                .setPulsatingGlow(0.2f, 0.4f)
-                .setGui(0.3f, 0.0f, 0.0f, 0.6f)
-                .createExtensions());
+        DistExecutor.unsafeRunWhenOn(Dist.CLIENT,
+                () -> () -> com.maxwell.qliphoth_armaments.client.render.SeraphimRailGunRenderer.register(consumer));
     }
 
     @Override

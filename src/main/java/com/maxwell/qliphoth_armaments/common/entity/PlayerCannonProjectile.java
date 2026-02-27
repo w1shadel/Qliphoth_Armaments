@@ -25,8 +25,10 @@ public class PlayerCannonProjectile extends MalkuthCannonProjectile {
         super(type, level);
     }
 
-    public static PlayerCannonProjectile summonForPlayer(Level level, Player owner, Vec3 pos, Vec3 speed, QAElements type, float damage, boolean isUltimate) {
-        PlayerCannonProjectile projectile = new PlayerCannonProjectile((EntityType) BossEntities.MALKUTH_CANNON_PROJECTILE.get(), level);
+    public static PlayerCannonProjectile summonForPlayer(Level level, Player owner, Vec3 pos, Vec3 speed,
+            QAElements type, float damage, boolean isUltimate) {
+        PlayerCannonProjectile projectile = new PlayerCannonProjectile(
+                (EntityType) BossEntities.MALKUTH_CANNON_PROJECTILE.get(), level);
         projectile.setPos(pos);
         projectile.setDeltaMovement(speed);
         if (type == QAElements.FIRE) {
@@ -44,19 +46,23 @@ public class PlayerCannonProjectile extends MalkuthCannonProjectile {
 
     @Override
     protected boolean canHitEntity(net.minecraft.world.entity.Entity entity) {
-        if (entity.is(this.getOwner())) return false;
+        if (entity.is(this.getOwner()))
+            return false;
         return super.canHitEntity(entity);
     }
 
     @Override
     protected void onHitEntity(EntityHitResult res) {
-        if (res.getEntity() instanceof MalkuthCannonProjectile) return;
-        if (!this.level().isClientSide) this.explodeForPlayer(res.getLocation());
+        if (res.getEntity() instanceof MalkuthCannonProjectile)
+            return;
+        if (!this.level().isClientSide)
+            this.explodeForPlayer(res.getLocation());
     }
 
     @Override
     protected void onHitBlock(BlockHitResult res) {
-        if (!this.level().isClientSide) this.explodeForPlayer(res.getLocation());
+        if (!this.level().isClientSide)
+            this.explodeForPlayer(res.getLocation());
     }
 
     @Override
@@ -68,7 +74,8 @@ public class PlayerCannonProjectile extends MalkuthCannonProjectile {
     }
 
     private void explodeForPlayer(Vec3 pos) {
-        if (this.level().isClientSide) return;
+        if (this.level().isClientSide)
+            return;
         ServerLevel level = (ServerLevel) this.level();
         QAElements elementType = QAElements.valueOf(this.getPersistentData().getString("QA_Element"));
         MalkuthAttackType visualType = this.getMalkuthAttackType();
@@ -85,44 +92,41 @@ public class PlayerCannonProjectile extends MalkuthCannonProjectile {
         if (isUltimate) {
             Vec3 motion = this.getDeltaMovement();
             Vec3 direction = new Vec3(motion.x, 0, motion.z).normalize();
-            if (direction.length() < 0.01) direction = new Vec3(1, 0, 0);
+            if (direction.length() < 0.01)
+                direction = new Vec3(1, 0, 0);
             float range = 20.0F;
             int duration = 20;
             float arcAngle = (float) Math.PI / 2.5F;
             Vec3 dirAndLen = direction.scale(range);
-            if (visualType.isFire()) {
-                MalkuthEarthquake.summon(
-                        level,
-                        MalkuthAttackType.FIRE,
-                        pos,
-                        dirAndLen,
-                        duration,
-                        arcAngle,
-                        0.0F
-                );
-                MalkuthPlayerAttackLogic.summon(
-                        level,
-                        (Player) this.getOwner(),
-                        pos,
-                        direction,
-                        elementType,
-                        damage * (elementType == QAElements.FIRE ? 3.0F : 1.5F),
-                        false
-                );
 
-            } else {
-                MalkuthEarthquake.summon(level, MalkuthAttackType.ICE, pos, dirAndLen, duration, arcAngle, 0.0F);
-                MalkuthPlayerAttackLogic.summon(level, (Player) this.getOwner(), pos, direction, QAElements.ICE, damage * 1.5F, false);
-            }
-            for (LivingEntity target : level.getEntitiesOfClass(LivingEntity.class, this.getBoundingBox().inflate(5.0))) {
-                if (target == this.getOwner()) continue;
+            // Summon visual earthquake
+            MalkuthEarthquake.summon(level, visualType, pos, dirAndLen, duration, arcAngle, 0.0F);
+
+            // Summon damage logic with normalized multiplier
+            // Fire: damage * 1.5F (prev 3.0F), Ice: damage * 1.2F (prev 1.5F)
+            float shockwaveDamageMult = (visualType.isFire()) ? 1.5F : 1.2F;
+            MalkuthPlayerAttackLogic.summon(
+                    level,
+                    (Player) this.getOwner(),
+                    pos,
+                    direction,
+                    elementType,
+                    damage * shockwaveDamageMult,
+                    false);
+
+            for (LivingEntity target : level.getEntitiesOfClass(LivingEntity.class,
+                    this.getBoundingBox().inflate(5.0))) {
+                if (target == this.getOwner())
+                    continue;
                 target.hurt(malkuthSource, damage);
                 target.push(0, 1.2, 0);
             }
 
         } else {
-            for (LivingEntity target : level.getEntitiesOfClass(LivingEntity.class, this.getBoundingBox().inflate(3.0).move(pos.subtract(this.position())))) {
-                if (target == this.getOwner()) continue;
+            for (LivingEntity target : level.getEntitiesOfClass(LivingEntity.class,
+                    this.getBoundingBox().inflate(3.0).move(pos.subtract(this.position())))) {
+                if (target == this.getOwner())
+                    continue;
                 ElementalReactionManager.applyElementalDamage(target, source, damage, elementType);
             }
         }
